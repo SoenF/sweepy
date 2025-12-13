@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const connectDB = require('./config/db'); // Use Mongoose connection
 const dotenv = require('dotenv');
+const { syncRateLimiter, authRateLimiter } = require('./middleware/rateLimit');
 
 dotenv.config();
 
@@ -14,10 +15,15 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
+// Apply rate limiting to specific routes
+app.use('/api/auth/', authRateLimiter); // Apply to auth routes
+app.use('/api/sync/', syncRateLimiter); // Apply to sync routes
+
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/members', require('./routes/members'));
 app.use('/api/chores', require('./routes/chores'));
 app.use('/api/schedule', require('./routes/schedule'));
+app.use('/api/sync', require('./routes/sync'));
 
 // Basic route
 app.get('/', (req, res) => {
