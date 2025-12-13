@@ -37,47 +37,69 @@ export const AuthProvider = ({ children }) => {
     }, [isMobile]);
 
     const login = async (family_name, password) => {
-        const response = await fetch('http://localhost:3000/api/auth/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ family_name, password })
-        });
+        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
-        if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.error || 'Login failed');
+        try {
+            const response = await fetch(`${API_URL}/auth/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ family_name, password })
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || 'Login failed');
+            }
+
+            const data = await response.json();
+            setToken(data.token);
+            setFamily(data.family);
+
+            localStorage.setItem('auth_token', data.token);
+            localStorage.setItem('auth_family', JSON.stringify(data.family));
+
+            return data;
+        } catch (error) {
+            console.error('Login error details:', {
+                message: error.message,
+                url: `${API_URL}/auth/login`,
+                timestamp: new Date().toISOString()
+            });
+            throw error;
         }
-
-        const data = await response.json();
-        setToken(data.token);
-        setFamily(data.family);
-
-        localStorage.setItem('auth_token', data.token);
-        localStorage.setItem('auth_family', JSON.stringify(data.family));
-
-        return data;
     };
 
     const signup = async (family_name, password) => {
-        const response = await fetch('http://localhost:3000/api/auth/signup', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ family_name, password })
-        });
+        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
-        if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.error || 'Signup failed');
+        try {
+            const response = await fetch(`${API_URL}/auth/signup`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ family_name, password })
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || 'Signup failed');
+            }
+
+            const data = await response.json();
+            setToken(data.token);
+            setFamily(data.family);
+
+            localStorage.setItem('auth_token', data.token);
+            localStorage.setItem('auth_family', JSON.stringify(data.family));
+
+            return data;
+        } catch (error) {
+            console.error('Signup error details:', {
+                message: error.message,
+                url: `${API_URL}/auth/signup`,
+                timestamp: new Date().toISOString()
+            });
+            throw error;
         }
-
-        const data = await response.json();
-        setToken(data.token);
-        setFamily(data.family);
-
-        localStorage.setItem('auth_token', data.token);
-        localStorage.setItem('auth_family', JSON.stringify(data.family));
-
-        return data;
     };
 
     const logout = () => {
