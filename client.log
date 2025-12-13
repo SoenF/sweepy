@@ -7,3 +7,7 @@
 
   ➜  Local:   http://localhost:5173/
   ➜  Network: http://192.168.1.69:5173/
+10:01:28 AM [vite] vite.config.js changed, restarting server...
+10:01:28 AM [vite] server restarted.
+10:02:28 AM [vite] vite.config.js changed, restarting server...
+10:02:28 AM [vite] server restarted.
