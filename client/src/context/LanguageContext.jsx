@@ -5,10 +5,8 @@ import { translations } from '../utils/translations';
 const LanguageContext = createContext();
 
 export const LanguageProvider = ({ children }) => {
-    // Force French on Mobile, else default to English
-    const isMobile = Capacitor.isNativePlatform();
-    // Default language logic
-    const [language, setLanguage] = useState(isMobile ? 'fr' : 'en');
+    // Default to French for all platforms
+    const [language, setLanguage] = useState('fr');
 
     const toggleLanguage = () => {
         setLanguage((prev) => (prev === 'en' ? 'fr' : 'en'));

@@ -3,17 +3,35 @@ const assignmentService = require('./assignmentService');
 const { addDays, addWeeks, addMonths, format, parseISO } = require('date-fns');
 
 /**
- * Generate assignments for the next N days.
- * @param {number} daysToPlan - How many days into the future to plan.
+ * Calculate adaptive lookahead period based on task frequency.
+ * Ensures frequent tasks don't clutter far future, while rare tasks remain visible.
+ * @param {Object} chore - The chore object with frequency_value and frequency_type
+ * @returns {number} Number of days to look ahead for this task
+ */
+function calculateLookaheadDays(chore) {
+    let frequencyInDays = chore.frequency_value;
+
+    if (chore.frequency_type === 'weeks') {
+        frequencyInDays = chore.frequency_value * 7;
+    } else if (chore.frequency_type === 'months') {
+        frequencyInDays = chore.frequency_value * 30; // Approximation
+    }
+
+    const MIN_LOOKAHEAD = 90; // 3 months minimum
+    const adaptiveLookahead = frequencyInDays * 2; // See at least 2 future occurrences
+
+    return Math.max(MIN_LOOKAHEAD, adaptiveLookahead);
+}
+
+/**
+ * Generate assignments with adaptive lookahead per task.
  * @param {string} family_id - The family ID to generate assignments for.
  */
-exports.generateAssignments = async (daysToPlan = 365, family_id) => {
+exports.generateAssignments = async (family_id) => {
     const chores = await Chore.find({ family_id });
     if (!chores.length) return [];
 
     const today = new Date();
-    const endDate = addDays(today, daysToPlan);
-
     const assignmentsCreated = [];
 
     // Ensure we have members
@@ -22,6 +40,12 @@ exports.generateAssignments = async (daysToPlan = 365, family_id) => {
 
     for (const chore of chores) {
         if (!chore.auto_assign) continue;
+
+        // ✨ Calculate adaptive lookahead for this specific task
+        const lookaheadDays = calculateLookaheadDays(chore);
+        const endDate = addDays(today, lookaheadDays);
+
+        console.log(`[Scheduler] ${chore.name}: generating ${lookaheadDays} days ahead (freq: ${chore.frequency_value} ${chore.frequency_type})`);
 
         // 0. REGENERATION: Clear future pending assignments
         const todayStr = format(today, 'yyyy-MM-dd');

@@ -57,9 +57,8 @@ router.get('/', async (req, res) => {
 // POST /api/schedule/generate
 router.post('/generate', async (req, res) => {
     try {
-        const { days } = req.body;
-        const assignments = await schedulerService.generateAssignments(days || 30, req.family_id);
-        res.json({ message: 'Schedule updated', count: assignments.length, assignments });
+        const assignments = await schedulerService.generateAssignments(req.family_id);
+        res.json({ message: 'Schedule updated with adaptive lookahead', count: assignments.length, assignments });
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: err.message });
