@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { getChores, createChore, deleteChore } from '../utils/api';
+import { getChores, createChore, deleteChore, getMembers } from '../utils/api';
 import Card from '../components/Card';
 import Button from '../components/Button';
 import Input from '../components/Input';
+import Legend from '../components/Legend';
 import { Plus, Trash2, Repeat, BarChart2 } from 'lucide-react';
 
 import { useLanguage } from '../context/LanguageContext';
@@ -10,6 +11,7 @@ import { useLanguage } from '../context/LanguageContext';
 const Chores = () => {
     const { t } = useLanguage();
     const [chores, setChores] = useState([]);
+    const [members, setMembers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
@@ -28,8 +30,12 @@ const Chores = () => {
 
     const fetchData = async () => {
         try {
-            const data = await getChores();
-            setChores(data);
+            const [choresData, membersData] = await Promise.all([
+                getChores(),
+                getMembers()
+            ]);
+            setChores(choresData);
+            setMembers(membersData);
         } catch (err) {
             setError(t('fetchError'));
         } finally {

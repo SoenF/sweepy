@@ -2,6 +2,6 @@
 > server@1.0.0 start
 > node server.js
 
-[dotenv@17.2.3] injecting env (2) from .env -- tip: 🔑 add access controls to secrets: https://dotenvx.com/ops
+[dotenv@17.2.3] injecting env (2) from .env -- tip: ✅ audit secrets and track compliance: https://dotenvx.com/ops
 Server is running on port 3000
-MongoDB Connected: ac-lgws0er-shard-00-02.er7j3s6.mongodb.net
+MongoDB Connected: ac-lgws0er-shard-00-01.er7j3s6.mongodb.net

@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { getAssignments, generateSchedule, toggleTask } from '../utils/api';
+import { getAssignments, generateSchedule, toggleTask, getMembers } from '../utils/api';
 import Card from '../components/Card';
 import Avatar from '../components/Avatar';
 import Button from '../components/Button';
+import Legend from '../components/Legend';
+import { getMemberColor } from '../utils/colors';
 import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths } from 'date-fns';
 import { fr, enUS } from 'date-fns/locale';
 import { ChevronLeft, ChevronRight, RefreshCw, CheckCircle } from 'lucide-react';
@@ -10,26 +12,33 @@ import { useLanguage } from '../context/LanguageContext';
 
 const Calendar = () => {
     const { t, language } = useLanguage();
-    // Select locale based on context (default to enUS if undefined)
     const dateLocale = language === 'fr' ? fr : enUS;
 
     const [currentDate, setCurrentDate] = useState(new Date());
     const [assignments, setAssignments] = useState([]);
+    const [members, setMembers] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [selectedDate, setSelectedDate] = useState(new Date());
 
     useEffect(() => {
-        fetchAssignments();
+        fetchData();
     }, [currentDate]);
 
-    const fetchAssignments = async () => {
+    const fetchData = async () => {
         setLoading(true);
         try {
             const start = format(startOfWeek(startOfMonth(currentDate)), 'yyyy-MM-dd');
             const end = format(endOfWeek(endOfMonth(currentDate)), 'yyyy-MM-dd');
-            const data = await getAssignments(start, end);
-            setAssignments(data);
+
+            const [assigns, mems] = await Promise.all([
+                getAssignments(start, end),
+                getMembers()
+            ]);
+
+            setAssignments(assigns);
+            setMembers(mems);
         } catch (err) {
-            console.error('Failed to load assignments');
+            console.error('Failed to load data');
         } finally {
             setLoading(false);
         }
@@ -38,7 +47,7 @@ const Calendar = () => {
     const handleGenerate = async () => {
         try {
             await generateSchedule(365);
-            fetchAssignments(); // Refresh
+            fetchData();
         } catch (err) {
             alert('Failed to generate schedule');
         }
@@ -47,7 +56,7 @@ const Calendar = () => {
     const handleToggle = async (assignment) => {
         try {
             await toggleTask(assignment.id);
-            fetchAssignments(); // Refresh to see crossed out status
+            fetchData();
         } catch (err) {
             alert('Failed to update task');
         }
@@ -56,7 +65,6 @@ const Calendar = () => {
     const nextMonth = () => setCurrentDate(addMonths(currentDate, 1));
     const prevMonth = () => setCurrentDate(subMonths(currentDate, 1));
 
-    // Calendar Grid Logic
     const monthStart = startOfMonth(currentDate);
     const monthEnd = endOfMonth(monthStart);
     const startDate = startOfWeek(monthStart);
@@ -64,21 +72,14 @@ const Calendar = () => {
     const dateRange = eachDayOfInterval({ start: startDate, end: endDate });
 
     const getDayAssignments = (day) => {
-        // Parse assignment date as local date to ensure match
         return assignments.filter(a => {
             if (!a.date) return false;
-            // Split "YYYY-MM-DD" and create local date (Month is 0-indexed)
             const [y, m, d] = a.date.split('-').map(Number);
             const assignDate = new Date(y, m - 1, d);
-
-            // Filter out orphans (no member attached OR no chore attached)
             if (!a.Member || !a.Chore) return false;
-
             return isSameDay(assignDate, day);
         });
     };
-
-    const [selectedDate, setSelectedDate] = useState(new Date());
 
     const handleDayClick = (day) => {
         setSelectedDate(day);
@@ -88,7 +89,7 @@ const Calendar = () => {
 
     return (
         <div>
-            <div className="page-header-responsive">
+            <div className="page-header-responsive" style={{ marginBottom: '1rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', justifyContent: 'center', width: '100%' }}>
                     <Button variant="ghost" onClick={prevMonth}><ChevronLeft /></Button>
                     <h2 style={{ textAlign: 'center', flex: 1, minWidth: '150px' }} className="capitalize-first">
@@ -105,6 +106,11 @@ const Calendar = () => {
                 >
                     <RefreshCw size={18} /> Mettre à jour
                 </Button>
+            </div>
+
+            {/* Legend Section */}
+            <div style={{ marginBottom: '1rem' }}>
+                <Legend members={members} />
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '2rem' }}>
@@ -132,7 +138,7 @@ const Calendar = () => {
                                     onClick={() => handleDayClick(day)}
                                     className={isSelected ? 'calendar-day-selected' : ''}
                                     style={{
-                                        minHeight: '80px', // Reduced height for mobile goodness
+                                        minHeight: '80px',
                                         padding: '0.25rem',
                                         borderRight: '1px solid #f1f5f9',
                                         borderBottom: '1px solid #f1f5f9',
@@ -159,21 +165,25 @@ const Calendar = () => {
 
                                     {/* Desktop View: Full Text */}
                                     <div className="calendar-cell-content" style={{ width: '100%' }}>
-                                        {dayAssignments.map(assignment => (
-                                            <div
-                                                key={assignment.id}
-                                                style={{
-                                                    fontSize: '0.7rem',
-                                                    padding: '2px 4px',
-                                                    backgroundColor: assignment.status === 'completed' ? '#dcfce7' : 'hsl(var(--primary) / 0.1)',
-                                                    color: assignment.status === 'completed' ? '#166534' : 'hsl(var(--primary-dark))',
-                                                    borderRadius: '4px',
-                                                    whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'
-                                                }}
-                                            >
-                                                {assignment.Member?.name}
-                                            </div>
-                                        ))}
+                                        {dayAssignments.map(assignment => {
+                                            const memberColor = getMemberColor(assignment.Member?.name);
+                                            return (
+                                                <div
+                                                    key={assignment.id}
+                                                    style={{
+                                                        fontSize: '0.7rem',
+                                                        padding: '2px 4px',
+                                                        backgroundColor: assignment.status === 'completed' ? '#dcfce7' : `${memberColor}20`,
+                                                        color: assignment.status === 'completed' ? '#166534' : 'hsl(var(--text-main))',
+                                                        borderLeft: assignment.status === 'completed' ? 'none' : `3px solid ${memberColor}`,
+                                                        borderRadius: '4px',
+                                                        whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'
+                                                    }}
+                                                >
+                                                    {assignment.Member?.name}
+                                                </div>
+                                            );
+                                        })}
                                     </div>
 
                                     {/* Mobile View: Dots */}
@@ -183,7 +193,9 @@ const Calendar = () => {
                                                 key={assignment.id}
                                                 className="calendar-dot"
                                                 style={{
-                                                    backgroundColor: assignment.status === 'completed' ? '#22c55e' : 'hsl(var(--primary))'
+                                                    backgroundColor: assignment.status === 'completed'
+                                                        ? '#22c55e'
+                                                        : getMemberColor(assignment.Member?.name)
                                                 }}
                                             />
                                         ))}
@@ -194,9 +206,9 @@ const Calendar = () => {
                     </div>
                 </Card>
 
-                {/* Selected Day Details (Always visible, but mostly for mobile utility) */}
+                {/* Selected Day Details */}
                 <div style={{ paddingBottom: '2rem' }}>
-                    <h3 style={{ marginBottom: '1rem', className: 'capitalize-first' }}>
+                    <h3 style={{ marginBottom: '1rem' }} className="capitalize-first">
                         {format(selectedDate, 'EEEE d MMMM', { locale: dateLocale })}
                     </h3>
 
@@ -204,40 +216,42 @@ const Calendar = () => {
                         <p style={{ color: 'hsl(var(--text-muted))', fontStyle: 'italic' }}>{t('noChores') || "No chores for this day."}</p>
                     ) : (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                            {selectedDayAssignments.map(assignment => (
-                                <Card
-                                    key={assignment.id}
-                                    style={{
-                                        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                                        padding: '1rem',
-                                        borderLeft: `4px solid ${assignment.status === 'completed' ? '#22c55e' : 'hsl(var(--primary))'}`
-                                    }}
-                                    onClick={() => handleToggle(assignment)}
-                                >
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                                        <div style={{ color: assignment.status === 'completed' ? '#22c55e' : '#cbd5e1' }}>
-                                            <CheckCircle size={24} fill={assignment.status === 'completed' ? 'currentColor' : 'none'} />
-                                        </div>
-                                        <div>
-                                            <div style={{ fontWeight: 600, textDecoration: assignment.status === 'completed' ? 'line-through' : 'none' }}>
-                                                {assignment.Chore?.name}
+                            {selectedDayAssignments.map(assignment => {
+                                const memberColor = getMemberColor(assignment.Member?.name);
+                                return (
+                                    <Card
+                                        key={assignment.id}
+                                        style={{
+                                            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                                            padding: '1rem',
+                                            borderLeft: `4px solid ${assignment.status === 'completed' ? '#22c55e' : memberColor}`
+                                        }}
+                                        onClick={() => handleToggle(assignment)}
+                                    >
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                            <div style={{ color: assignment.status === 'completed' ? '#22c55e' : '#cbd5e1' }}>
+                                                <CheckCircle size={24} fill={assignment.status === 'completed' ? 'currentColor' : 'none'} />
                                             </div>
-                                            <div style={{ fontSize: '0.85rem', color: 'hsl(var(--text-muted))', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                                <Avatar name={assignment.Member?.name} url={assignment.Member?.avatar} size={20} />
-                                                {assignment.Member?.name}
+                                            <div>
+                                                <div style={{ fontWeight: 600, textDecoration: assignment.status === 'completed' ? 'line-through' : 'none' }}>
+                                                    {assignment.Chore?.name}
+                                                </div>
+                                                <div style={{ fontSize: '0.85rem', color: 'hsl(var(--text-muted))', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                    <Avatar name={assignment.Member?.name} url={assignment.Member?.avatar} size={20} />
+                                                    {assignment.Member?.name}
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                    {/* Points Badge */}
-                                    <div style={{
-                                        fontSize: '0.75rem', fontWeight: 700,
-                                        backgroundColor: 'hsl(var(--bg-body))', padding: '0.25rem 0.5rem', borderRadius: '12px',
-                                        color: 'hsl(var(--text-muted))'
-                                    }}>
-                                        {assignment.Chore?.difficulty || 1} pts
-                                    </div>
-                                </Card>
-                            ))}
+                                        <div style={{
+                                            fontSize: '0.75rem', fontWeight: 700,
+                                            backgroundColor: 'hsl(var(--bg-body))', padding: '0.25rem 0.5rem', borderRadius: '12px',
+                                            color: 'hsl(var(--text-muted))'
+                                        }}>
+                                            {assignment.Chore?.difficulty || 1} pts
+                                        </div>
+                                    </Card>
+                                );
+                            })}
                         </div>
                     )}
                 </div>
