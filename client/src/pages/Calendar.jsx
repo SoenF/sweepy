@@ -170,6 +170,10 @@ const Calendar = () => {
                                             return (
                                                 <div
                                                     key={assignment.id}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleToggle(assignment);
+                                                    }}
                                                     style={{
                                                         fontSize: '0.7rem',
                                                         padding: '2px 4px',
@@ -177,8 +181,13 @@ const Calendar = () => {
                                                         color: assignment.status === 'completed' ? '#166534' : 'hsl(var(--text-main))',
                                                         borderLeft: assignment.status === 'completed' ? 'none' : `3px solid ${memberColor}`,
                                                         borderRadius: '4px',
-                                                        whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'
+                                                        whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                                                        cursor: 'pointer',
+                                                        transition: 'opacity 0.2s',
+                                                        textDecoration: assignment.status === 'completed' ? 'line-through' : 'none'
                                                     }}
+                                                    onMouseEnter={(e) => e.currentTarget.style.opacity = '0.8'}
+                                                    onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
                                                 >
                                                     {assignment.Member?.name}
                                                 </div>
@@ -192,10 +201,15 @@ const Calendar = () => {
                                             <div
                                                 key={assignment.id}
                                                 className="calendar-dot"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleToggle(assignment);
+                                                }}
                                                 style={{
                                                     backgroundColor: assignment.status === 'completed'
                                                         ? '#22c55e'
-                                                        : getMemberColor(assignment.Member?.name)
+                                                        : getMemberColor(assignment.Member?.name),
+                                                    cursor: 'pointer'
                                                 }}
                                             />
                                         ))}
