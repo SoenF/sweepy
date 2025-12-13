@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Card from '../components/Card';
@@ -12,8 +12,16 @@ const Login = () => {
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
 
-    const { login, signup } = useAuth();
+    const { login, signup, isAuthenticated } = useAuth();
     const navigate = useNavigate();
+
+    // Redirect to home when authenticated
+    useEffect(() => {
+        if (isAuthenticated) {
+            console.log('✅ User is authenticated, redirecting to home');
+            navigate('/', { replace: true });
+        }
+    }, [isAuthenticated, navigate]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -26,7 +34,7 @@ const Login = () => {
             } else {
                 await login(familyName, password);
             }
-            navigate('/');
+            // Don't navigate here - let the useEffect above handle it
         } catch (err) {
             setError(err.message);
         } finally {
