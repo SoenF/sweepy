@@ -2,7 +2,6 @@
 > server@1.0.0 start
 > node server.js
 
-[dotenv@17.2.3] injecting env (2) from .env -- tip: 🗂️ backup and recover secrets: https://dotenvx.com/ops
+[dotenv@17.2.3] injecting env (2) from .env -- tip: ⚙️  enable debug logging with { debug: true }
 Server is running on port 3000
-Error: options usenewurlparser, useunifiedtopology are not supported
-Please ensure MONGODB_URI is set in .env or a local mongo instance is running.
+MongoDB Connected: ac-lgws0er-shard-00-00.er7j3s6.mongodb.net

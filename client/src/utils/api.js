@@ -1,8 +1,13 @@
+import { Capacitor } from '@capacitor/core';
+import * as DB from '../services/Database';
+
 // Use a dynamic URL if set in localStorage (useful for mobile testing on same wifi)
 // Otherwise default to localhost. Can be overridden in console via: localStorage.setItem('API_URL', 'http://192.168.x.x:3000')
 const getApiUrl = () => {
     return localStorage.getItem('API_URL') || 'http://localhost:3000/api';
 };
+
+const isMobile = Capacitor.isNativePlatform();
 
 /**
  * Enhanced fetch wrapper with Caching for GET requests
@@ -40,45 +45,77 @@ const fetchWithCache = async (endpoint, options = {}) => {
 };
 
 // Members
-export const getMembers = () => fetchWithCache('/members');
+export const getMembers = async () => {
+    if (isMobile) return DB.getLocalMembers();
+    return fetchWithCache('/members');
+};
 
-export const createMember = (data) => fetchWithCache('/members', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data)
-});
+export const createMember = async (data) => {
+    if (isMobile) return DB.addLocalMember(data);
+    return fetchWithCache('/members', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    });
+};
 
-export const deleteMember = (id) => fetchWithCache(`/members/${id}`, { method: 'DELETE' });
+export const deleteMember = async (id) => {
+    if (isMobile) return DB.deleteLocalMember(id);
+    return fetchWithCache(`/members/${id}`, { method: 'DELETE' });
+};
 
-export const resetPoints = () => fetchWithCache('/members/points/reset', { method: 'POST' });
+export const resetPoints = async () => {
+    // If mobile, likely need a DB method for this
+    // For now, no-op or implement later
+    if (isMobile) return;
+    return fetchWithCache('/members/points/reset', { method: 'POST' });
+};
 
 // Chores
-export const getChores = () => fetchWithCache('/chores');
+export const getChores = async () => {
+    if (isMobile) return DB.getLocalChores();
+    return fetchWithCache('/chores');
+};
 
-export const createChore = (data) => fetchWithCache('/chores', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data)
-});
+export const createChore = async (data) => {
+    if (isMobile) return DB.addLocalChore(data);
+    return fetchWithCache('/chores', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    });
+};
 
-export const deleteChore = (id) => fetchWithCache(`/chores/${id}`, { method: 'DELETE' });
+export const deleteChore = async (id) => {
+    if (isMobile) return DB.deleteLocalChore(id);
+    return fetchWithCache(`/chores/${id}`, { method: 'DELETE' });
+};
 
 // Schedule
-export const getAssignments = (start, end) => {
+export const getAssignments = async (start, end) => {
+    if (isMobile) return DB.getLocalAssignments(start, end);
     const params = new URLSearchParams();
     if (start) params.append('start', start);
     if (end) params.append('end', end);
     return fetchWithCache(`/schedule?${params.toString()}`);
 };
 
-export const generateSchedule = (days = 30) => fetchWithCache('/schedule/generate', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ days })
-});
+export const generateSchedule = async (days = 30) => {
+    // Mobile generation not yet implemented
+    if (isMobile) return [];
+    return fetchWithCache('/schedule/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ days })
+    });
+};
 
-export const toggleTask = (id, memberId = null) => fetchWithCache(`/schedule/${id}/toggle`, {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ member_id: memberId })
-});
+export const toggleTask = async (id, memberId = null) => {
+    // Mobile toggle not yet fully implemented in DB
+    if (isMobile) return;
+    return fetchWithCache(`/schedule/${id}/toggle`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ member_id: memberId })
+    });
+};

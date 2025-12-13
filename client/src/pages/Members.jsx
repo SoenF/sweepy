@@ -62,16 +62,31 @@ const Members = () => {
                 <h2 style={{ marginBottom: 0 }}>{t('familyMembers')}</h2>
 
                 {/* Simple Add Form inline for now */}
-                <form onSubmit={handleAdd} style={{ display: 'flex', gap: '0.5rem', width: '100%', maxWidth: '400px' }}>
+                <form onSubmit={handleAdd} style={{
+                    display: 'flex',
+                    gap: '0.5rem',
+                    width: '100%',
+                    maxWidth: '400px',
+                    alignItems: 'center' // Critical for alignment
+                }}>
                     <div style={{ flex: 1 }}>
                         <Input
                             placeholder={t('name')}
                             value={newName}
                             onChange={(e) => setNewName(e.target.value)}
-                            style={{ padding: '0.6rem', marginBottom: 0, height: '100%' }}
+                            // Pass containerStyle to remove the wrapper margin that breaks alignment
+                            containerStyle={{ marginBottom: 0 }}
+                            // Input inner style
+                            style={{
+                                height: '48px', // Match button height explicitly
+                                padding: '0 1rem',
+                                borderRadius: '9999px', // Match pill button
+                                border: '1px solid #e2e8f0',
+                                width: '100%'
+                            }}
                         />
                     </div>
-                    <Button type="submit" style={{ whiteSpace: 'nowrap' }}>
+                    <Button type="submit" style={{ height: '48px', padding: '0 1.5rem', whiteSpace: 'nowrap' }}>
                         <Plus size={18} /> {t('add')}
                     </Button>
                 </form>

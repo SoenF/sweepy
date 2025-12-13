@@ -1,8 +1,8 @@
 import React from 'react';
 
-const Input = ({ label, error, ...props }) => {
+const Input = ({ label, error, containerStyle = {}, ...props }) => {
     return (
-        <div style={{ marginBottom: '1rem', width: '100%' }}>
+        <div style={{ marginBottom: '1rem', width: '100%', ...containerStyle }}>
             {label && (
                 <label style={{
                     display: 'block',

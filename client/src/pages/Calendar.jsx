@@ -77,14 +77,14 @@ const Calendar = () => {
 
     return (
         <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <div className="page-header-responsive">
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', justifyContent: 'center', width: '100%' }}>
                     <Button variant="ghost" onClick={prevMonth}><ChevronLeft /></Button>
-                    <h2 style={{ minWidth: '200px', textAlign: 'center' }}>{format(currentDate, 'MMMM yyyy')}</h2>
+                    <h2 style={{ textAlign: 'center', flex: 1, minWidth: '150px' }}>{format(currentDate, 'MMMM yyyy')}</h2>
                     <Button variant="ghost" onClick={nextMonth}><ChevronRight /></Button>
                 </div>
 
-                <Button onClick={handleGenerate} variant="secondary">
+                <Button onClick={handleGenerate} variant="secondary" style={{ whiteSpace: 'nowrap' }}>
                     <RefreshCw size={18} /> {t('autoGenerate')}
                 </Button>
             </div>

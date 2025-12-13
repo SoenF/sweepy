@@ -138,10 +138,9 @@ h5 {
     font-size: 1.25rem;
   }
 
-  button {
-    min-height: 48px;
-    /* Larger touch target */
-  }
+  /* button {
+    min-height: 48px; 
+  } Remove this global rule, it breaks icon buttons */
 }
 
 /* Responsive Utilities */
@@ -163,8 +162,14 @@ h5 {
 @media (max-width: 768px) {
   .page-header-responsive {
     flex-direction: column;
-    align-items: stretch;
-    /* Full width buttons */
+    align-items: center;
+    /* Center them instead of stretch */
+    text-align: center;
+  }
+
+  .page-header-responsive form {
+    width: 100%;
+    /* Let the form take width, but maybe buttons inside shouldn't stretch too ugly */
   }
 
   .responsive-grid-sidebar {
@@ -172,12 +177,9 @@ h5 {
     /* Stack sidebar */
     display: flex;
     flex-direction: column-reverse;
-    /* Put form (sidebar) at BOTTOM or TOP? Usually Form at top is better for "Add", but here sidebar is "Add". Let's put Form at TOP -> column-reverse puts last element (sidebar) first? No, default order is sidebar last. So column-reverse makes sidebar appearing first. */
   }
 
-  /* Make sidebar form appear first on mobile for easy adding */
   .responsive-grid-sidebar> :last-child {
-    /* Form container */
     order: -1;
   }
 }

@@ -3,10 +3,17 @@ import { translations } from '../utils/translations';
 
 const LanguageContext = createContext();
 
+import { Capacitor } from '@capacitor/core';
+
 export const LanguageProvider = ({ children }) => {
-    const [language, setLanguage] = useState('en'); // Default to English
+    // Force French on Mobile, else default to English
+    const isMobile = Capacitor.isNativePlatform();
+    const [language, setLanguage] = useState(isMobile ? 'fr' : 'en');
 
     const toggleLanguage = () => {
+        // Allow toggling even on mobile if user really wants, or maybe enforce it?
+        // User said "toujours en français", but maybe just default?
+        // Let's set default. If they toggle, it changes. Assuming "Default to French" is what's meant.
         setLanguage((prev) => (prev === 'en' ? 'fr' : 'en'));
     };
 

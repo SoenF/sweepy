@@ -5,8 +5,68 @@
 Port 5173 is in use, trying another one...
 Port 5174 is in use, trying another one...
 Port 5175 is in use, trying another one...
+Port 5176 is in use, trying another one...
+Port 5177 is in use, trying another one...
 
-  VITE v7.2.7  ready in 207 ms
+  VITE v7.2.7  ready in 652 ms
 
-  ➜  Local:   http://localhost:5176/
-  ➜  Network: http://192.168.1.69:5176/
+  ➜  Local:   http://localhost:5178/
+  ➜  Network: http://192.168.1.69:5178/
+11:10:33 AM [vite] (client) page reload android/app/build/intermediates/assets/debug/mergeDebugAssets/public/index.html
+11:10:33 AM [vite] (client) page reload android/app/src/main/assets/public/index.html
+11:10:33 AM [vite] (client) page reload android/build/reports/problems/problems-rep11:10:33 11:11:18 AM [vite] (client) page reload android/app/src/main/assets/public/index.html
+11:11:46 AM [vite] (client) page reload android/build/reports/problems/problems-report.html
+11:11:55 AM [vite] (client) page reload android/app/src/main/assets/public/index.html
+11:11:58 AM [vite] (client) page reload android/app/src/main/assets/public/index.html
+11:13:04 AM [vite] (client) page reload android/build/reports/problems/problems-report.html
+11:13:42 AM [vite] (client) page reload android/app/build/intermediates/assets/debug/mergeDebugAssets/public/index.html
+11:13:52 AM [vite] (client) page reload android/build/reports/problems/problems-report.html
+11:19:20 AM [vite] (client) page reload android/app/build/intermediates/assets/debug/mergeDebugAssets/public/index.html
+11:19:20 AM [vite] (client) page reload android/app/src/main/assets/public/index.html
+11:19:20 AM [vite] (client) page reload android/build/reports/problems/problems-report.html
+11:21:14 AM [vite] (client) page reload android/app/src/main/assets/public/index.html
+11:21:17 AM [vite] (client) page reload android/build/reports/problems/problems-report.html
+11:21:23 AM [vite] (client) page reload android/app/src/main/assets/public/index.html
+11:21:27 AM [vite] (client) page reload android/app/src/main/assets/public/index.html
+11:21:27 AM [vite] (client) page reload android/app/src/main/assets/public/index.html
+11:21:56 AM [vite] (client) page reload android/build/reports/problems/problems-rep11:21:56 11:22:16 AM [vite] (client) page reload android/app/build/intermediates/assets/debug/mergeDebugAssets/public/index.html
+11:22:30 AM [vite] (client) page reload android/build/reports/problems/problems-report.html
+AM [vite] (client) page reload android/build/reports/problems/problems-report.html
+d/b11:22:16 AM [vite] (client) page reload android/app/build/intermediates/assets/debug/mergeDebugAssets/public/index.html
+11:22:30 AM [vite] (client) page reload android/build/reports/problems/problems-report.html
+uild/reports/problems/problems-report.html
+uild/reports/problems/problems-report.html
+11:22:16 AM [vite] (client) page reload android/app/build/intermediates/assets/debug/mergeDebugAssets/public/index.html
+11:22:30 AM [vite] (client) page reload android/build/reports/problems/problems-report.html
+9 AM [vite] (client) ✨ new dependencies optimized: @capacitor/core, @capacitor-community/sqlite
+11:09:19 AM [vite] (client) ✨ optimized dependencies changed. reloading
+11:09:36 AM [vite] (client) hmr update /src/App.jsx
+11:10:33 AM [vite] (client) page reload android/app/build/intermediates/assets/debug/mergeDebugAssets/public/index.html
+11:10:33 AM [vite] (client) page reload android/app/src/main/assets/public/index.html
+11:10:33 AM [vite] (client) page reload android/build/reports/problems/problems-report.html
+11:11:18 AM [vite] (client) page reload android/app/src/main/assets/public/index.html
+11:11:46 AM [vite] (client) page reload android/build/reports/problems/problems-report.html
+11:11:46 AM [vite] (client) page reload android/build/reports/problems/problems-report.html
+11:11:55 AM [vite] (client) page reload android/app/src/main/assets/public/index.html
+11:11:58 AM [vite] (client) page reload android/app/src/main/assets/public/index.html
+11:13:04 AM [vite] (client) page reload android/build/reports/problems/problems-report.html
+11:13:42 AM [vite] (client) page reload android/app/build/intermediates/assets/debug/mergeDebugAssets/public/index.html
+11:13:52 AM [vite] (client) page reload android/build/reports/problems/problems-report.html
+11:18:41 AM [vite] (client) hmr update /src/context/LanguageContext.jsx
+11:18:52 AM [vite] (client) hmr invalidate /src/context/LanguageContext.jsx Could not Fast Refresh ("useLanguage" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+11:18:52 AM [vite] (client) page reload src/context/LanguageContext.jsx
+11:18:53 AM [vite] (client) hmr update /src/pages/Calendar.jsx
+11:18:53 AM [vite] (client) hmr update /src/pages/Calendar.jsx
+11:19:20 AM [vite] (client) page reload android/app/build/intermediates/assets/debug/mergeDebugAssets/public/index.html
+11:19:20 AM [vite] (client) page reload android/app/src/main/assets/public/index.html
+11:19:20 AM [vite] (client) page reload android/build/reports/problems/problems-report.html
+11:20:19 AM [vite] (client) hmr update /src/App.jsx
+11:20:37 AM [vite] (client) hmr update /src/pages/Members.jsx, /src/pages/Chores.jsx, /src/pages/Calendar.jsx, /src/pages/Dashboard.jsx, /src/App.jsx
+11:21:14 AM [vite] (client) page reload android/app/src/main/assets/public/index.html
+11:21:17 AM [vite] (client) page reload android/build/reports/problems/problems-report.html
+11:21:23 AM [vite] (client) page reload android/app/src/main/assets/public/index.html
+11:21:27 AM [vite] (client) page reload android/app/src/main/assets/public/index.html
+11:21:27 AM [vite] (client) page reload android/app/src/main/assets/public/index.html
+11:21:56 AM [vite] (client) page reload android/build/reports/problems/problems-report.html
+11:22:16 AM [vite] (client) page reload android/app/build/intermediates/assets/debug/mergeDebugAssets/public/index.html
+11:22:30 AM [vite] (client) page reload android/build/reports/problems/problems-report.html
