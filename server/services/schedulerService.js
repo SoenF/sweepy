@@ -1,56 +1,54 @@
-const { Chore, Assignment } = require('../models');
+const { Chore, Assignment, Member } = require('../models');
 const assignmentService = require('./assignmentService');
 const { addDays, addWeeks, addMonths, format, parseISO } = require('date-fns');
-const { Op } = require('sequelize');
 
 /**
  * Generate assignments for the next N days.
  * @param {number} daysToPlan - How many days into the future to plan.
  */
 exports.generateAssignments = async (daysToPlan = 365) => {
-    const chores = await Chore.findAll();
+    const chores = await Chore.find();
+    if (!chores.length) return [];
+
     const today = new Date();
     const endDate = addDays(today, daysToPlan);
 
     const assignmentsCreated = [];
 
+    // Ensure we have members
+    const members = await Member.find();
+    if (!members.length) return [];
+
     for (const chore of chores) {
         if (!chore.auto_assign) continue;
 
-        // 0. REGENERATION: Clear future pending assignments to reshuffle dynamic changes (e.g. new members)
-        // We delete any 'pending' task strictly AFTER today.
-        // This ensures we keep today's task (if it exists) as the anchor for rotation.
+        // 0. REGENERATION: Clear future pending assignments
         const todayStr = format(today, 'yyyy-MM-dd');
-        await Assignment.destroy({
-            where: {
-                chore_id: chore.id,
-                date: { [Op.gt]: todayStr },
-                status: 'pending'
-            }
+
+        await Assignment.deleteMany({
+            chore_id: chore._id,
+            date: { $gt: todayStr },
+            status: 'pending'
         });
 
         // 1. Find the last assignment for this chore
-        const lastAssignment = await Assignment.findOne({
-            where: { chore_id: chore.id },
-            order: [['date', 'DESC']]
-        });
+        const lastAssignment = await Assignment.findOne({ chore_id: chore._id })
+            .sort({ date: -1 });
 
         // 2. Determine start date for generation
         let nextDate;
         if (lastAssignment) {
             // Calculate next occurrence based on last date
+            // Assuming date is stored as "YYYY-MM-DD"
             const lastDate = parseISO(lastAssignment.date);
             nextDate = calculateNextDate(lastDate, chore.frequency_value, chore.frequency_type);
 
-            // If nextDate is in the past or today (due to gap without running), catch up to tomorrow
+            // If nextDate is in the past or today, catch up to tomorrow
             if (nextDate <= today) {
                 nextDate = addDays(today, 1);
             }
         } else {
             // First time assignment
-            // Rule: if frequency > 3 days, wait half the days. Otherwise start tomorrow.
-            // "si fréquence > 3 jours, alors on attends la moitié des jours pour commencer"
-
             let daysValue = chore.frequency_value;
             if (chore.frequency_type === 'weeks') daysValue = chore.frequency_value * 7;
             if (chore.frequency_type === 'months') daysValue = chore.frequency_value * 30;
@@ -65,12 +63,12 @@ exports.generateAssignments = async (daysToPlan = 365) => {
 
         // 3. Loop until endDate
         while (nextDate <= endDate) {
-            // Format date as YYYY-MM-DD for consistency
             const dateStr = format(nextDate, 'yyyy-MM-dd');
 
-            // Check if assignment already exists (double check)
+            // Check if assignment already exists
             const exists = await Assignment.findOne({
-                where: { chore_id: chore.id, date: dateStr }
+                chore_id: chore._id,
+                date: dateStr
             });
 
             if (!exists) {
@@ -78,8 +76,8 @@ exports.generateAssignments = async (daysToPlan = 365) => {
                 const member = await assignmentService.selectMemberForChore(chore, dateStr);
                 if (member) {
                     const assignment = await Assignment.create({
-                        chore_id: chore.id,
-                        member_id: member.id,
+                        chore_id: chore._id,
+                        member_id: member._id,
                         date: dateStr,
                         status: 'pending'
                     });

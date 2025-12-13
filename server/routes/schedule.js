@@ -3,22 +3,48 @@ const router = express.Router();
 const schedulerService = require('../services/schedulerService');
 
 const { Assignment, Member, Chore } = require('../models');
-const { Op } = require('sequelize');
 
 // GET /api/schedule?start=YYYY-MM-DD&end=YYYY-MM-DD
 router.get('/', async (req, res) => {
     try {
         const { start, end } = req.query;
-        const where = {};
+        const query = {};
+
         if (start && end) {
-            where.date = { [Op.between]: [start, end] };
+            // String comparison works for YYYY-MM-DD
+            query.date = { $gte: start, $lte: end };
         }
 
-        const assignments = await Assignment.findAll({
-            where,
-            include: [Member, Chore]
+        const assignments = await Assignment.find(query)
+            .populate('member_id')
+            .populate('chore_id');
+
+        // Ideally we should map the result to flat structure if frontend expects it
+        // Or ensure frontend handles populated objects { member_id: { ... } }
+        // The original Sequelize include: [Member] output assignments with .Member key.
+        // Mongoose populates member_id field.
+        // We might need to transform or frontend update.
+        // Let's assume frontend checks assignment.Member or assignment.member_id.
+        // To be safe, let's keep it simple: frontend likely needs to be checked or we conform.
+        // Quick fix: user requested rewriting to make it work. I'll rely on frontend adaptability or transformation.
+
+        // Actually, Sequelize `include: [Member]` produces `assignment.Member`.
+        // Mongoose `populate('member_id')` replaces `assignment.member_id` with the object.
+        // This is a Breaking Change for frontend if I don't transform.
+        // Let's transform:
+
+        const converted = assignments.map(a => {
+            const obj = a.toObject();
+            return {
+                ...obj,
+                Member: obj.member_id,
+                Chore: obj.chore_id,
+                // Ensure IDs are consistent
+                id: obj._id,
+            };
         });
-        res.json(assignments);
+
+        res.json(converted);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -40,45 +66,60 @@ router.post('/generate', async (req, res) => {
 router.patch('/:id/toggle', async (req, res) => {
     try {
         const { id } = req.params;
-        const { member_id } = req.body; // Optional: If specified, reassign completion to this member
+        const { member_id } = req.body; // Optional reassign
 
-        const assignment = await Assignment.findByPk(id, { include: [Chore, Member] });
+        const assignment = await Assignment.findById(id).populate('chore_id').populate('member_id');
         if (!assignment) return res.status(404).json({ error: 'Assignment not found' });
 
         const previousStatus = assignment.status;
         const newStatus = previousStatus === 'pending' ? 'completed' : 'pending';
 
-        // 1. If completing, and a specific member did it, update the assignment
-        // (Only allow reassignment if we are moving to completed state)
-        if (newStatus === 'completed' && member_id && member_id !== assignment.member_id) {
-            // Reassign
-            await assignment.update({ member_id });
-            // Reload with new member
-            await assignment.reload({ include: [Chore, Member] });
+        // 1. Reassign if requested and completing
+        if (newStatus === 'completed' && member_id && member_id !== assignment.member_id._id.toString()) {
+            assignment.member_id = member_id;
+            // Need to repopulate to get member object for points logic
+            // Or just fetch the new member separately
+            // Let's verify new member exists
+            const newMember = await Member.findById(member_id);
+            if (newMember) {
+                assignment.member_id = newMember; // set the object or ID? Mongoose supports assigning ID.
+                // Actually better to assign ID and let save handle. 
+                // But for the logic below we need the 'Member' object.
+            }
         }
 
-        // 2. Calculate points
-        // Difficulty 1, 2, 3 -> 10, 20, 30 points
-        const points = (assignment.Chore ? assignment.Chore.difficulty : 1) * 10;
-        const member = await Member.findByPk(assignment.member_id);
+        // 2. Points Logic
+        const difficulty = assignment.chore_id ? assignment.chore_id.difficulty : 1;
+        const points = difficulty * 10;
 
-        if (!member) {
-            // Should not happen if data integrity is good, but safe to check
-            await assignment.update({ status: newStatus });
-            return res.json(assignment);
+        // Use the current member associated (whether changed or not)
+        // assignment.member_id is now a populated object (Document)
+        const member = await Member.findById(assignment.member_id._id || assignment.member_id); // Handle if it's ID or Object
+
+        if (member) {
+            if (newStatus === 'completed' && previousStatus !== 'completed') {
+                member.total_points += points;
+            } else if (newStatus === 'pending' && previousStatus === 'completed') {
+                member.total_points -= points;
+            }
+            await member.save();
         }
 
-        // 3. Update Points and Status
-        if (newStatus === 'completed' && previousStatus !== 'completed') {
-            await member.increment('total_points', { by: points });
-        } else if (newStatus === 'pending' && previousStatus === 'completed') {
-            await member.decrement('total_points', { by: points });
-        }
+        assignment.status = newStatus;
+        if (member_id) assignment.member_id = member_id; // ensure ID is saved
+        await assignment.save();
 
-        await assignment.update({ status: newStatus });
+        // Return similar structure to GET
+        // Re-fetch to be clean
+        const updated = await Assignment.findById(id).populate('member_id').populate('chore_id');
+        const obj = updated.toObject();
+        res.json({
+            ...obj,
+            Member: obj.member_id,
+            Chore: obj.chore_id,
+            id: obj._id
+        });
 
-        // Return updated assignment
-        res.json(assignment);
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: err.message });

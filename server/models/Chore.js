@@ -1,32 +1,39 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config/database');
+const mongoose = require('mongoose');
 
-const Chore = sequelize.define('Chore', {
-    id: {
-        type: DataTypes.INTEGER,
-        primaryKey: true,
-        autoIncrement: true
-    },
+const ChoreSchema = new mongoose.Schema({
     name: {
-        type: DataTypes.STRING,
-        allowNull: false
+        type: String,
+        required: true,
+        trim: true
     },
     difficulty: {
-        type: DataTypes.INTEGER, // e.g. 1-3
-        defaultValue: 1
+        type: Number,
+        default: 1
     },
     frequency_value: {
-        type: DataTypes.INTEGER,
-        allowNull: false
+        type: Number,
+        required: true
     },
     frequency_type: {
-        type: DataTypes.ENUM('days', 'weeks', 'months'),
-        allowNull: false
+        type: String,
+        enum: ['days', 'weeks', 'months'],
+        required: true
     },
     auto_assign: {
-        type: DataTypes.BOOLEAN,
-        defaultValue: true
+        type: Boolean,
+        default: true
     }
+}, {
+    timestamps: true,
+    toJSON: {
+        virtuals: true,
+        transform: function (doc, ret) {
+            ret.id = ret._id;
+            delete ret._id;
+            delete ret.__v;
+        }
+    },
+    toObject: { virtuals: true }
 });
 
-module.exports = Chore;
+module.exports = mongoose.model('Chore', ChoreSchema);

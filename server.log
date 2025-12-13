@@ -2,6 +2,7 @@
 > server@1.0.0 start
 > node server.js
 
-[dotenv@17.2.3] injecting env (0) from .env -- tip: 🔑 add access controls to secrets: https://dotenvx.com/ops
-Database connected.
+[dotenv@17.2.3] injecting env (2) from .env -- tip: 🗂️ backup and recover secrets: https://dotenvx.com/ops
 Server is running on port 3000
+Error: options usenewurlparser, useunifiedtopology are not supported
+Please ensure MONGODB_URI is set in .env or a local mongo instance is running.

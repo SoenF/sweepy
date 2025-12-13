@@ -1,28 +1,40 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config/database');
+const mongoose = require('mongoose');
 
-const Assignment = sequelize.define('Assignment', {
-    id: {
-        type: DataTypes.INTEGER,
-        primaryKey: true,
-        autoIncrement: true
-    },
+const AssignmentSchema = new mongoose.Schema({
     chore_id: {
-        type: DataTypes.INTEGER,
-        allowNull: false
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Chore',
+        required: true
     },
     member_id: {
-        type: DataTypes.INTEGER,
-        allowNull: false
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Member',
+        required: true
     },
     date: {
-        type: DataTypes.DATEONLY, // YYYY-MM-DD
-        allowNull: false
+        type: String, // Sticking to YYYY-MM-DD
+        required: true
     },
     status: {
-        type: DataTypes.ENUM('pending', 'completed'),
-        defaultValue: 'pending'
+        type: String,
+        enum: ['pending', 'completed'],
+        default: 'pending'
+    },
+    completed_at: {
+        type: Date
     }
+}, {
+    timestamps: true,
+    toJSON: {
+        virtuals: true,
+        transform: function (doc, ret) {
+            ret.id = ret._id;
+            delete ret._id;
+            delete ret.__v;
+            // Ensure refs are populated or IDs are returned
+        }
+    },
+    toObject: { virtuals: true }
 });
 
-module.exports = Assignment;
+module.exports = mongoose.model('Assignment', AssignmentSchema);

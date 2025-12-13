@@ -58,20 +58,20 @@ const Members = () => {
 
     return (
         <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-                <h2>{t('familyMembers')}</h2>
+            <div className="page-header-responsive">
+                <h2 style={{ marginBottom: 0 }}>{t('familyMembers')}</h2>
 
                 {/* Simple Add Form inline for now */}
-                <form onSubmit={handleAdd} style={{ display: 'flex', gap: '0.5rem' }}>
-                    <div style={{ width: '200px' }}>
+                <form onSubmit={handleAdd} style={{ display: 'flex', gap: '0.5rem', width: '100%', maxWidth: '400px' }}>
+                    <div style={{ flex: 1 }}>
                         <Input
                             placeholder={t('name')}
                             value={newName}
                             onChange={(e) => setNewName(e.target.value)}
-                            style={{ padding: '0.6rem', marginBottom: 0 }}
+                            style={{ padding: '0.6rem', marginBottom: 0, height: '100%' }}
                         />
                     </div>
-                    <Button type="submit">
+                    <Button type="submit" style={{ whiteSpace: 'nowrap' }}>
                         <Plus size={18} /> {t('add')}
                     </Button>
                 </form>

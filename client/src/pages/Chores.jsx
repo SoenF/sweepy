@@ -71,7 +71,7 @@ const Chores = () => {
                 <h2>{t('choresTitle')}</h2>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 350px', gap: '2rem' }}>
+            <div className="responsive-grid-sidebar">
                 {/* List */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                     {loading && <p>{t('loading')}</p>}
