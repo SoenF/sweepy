@@ -1,0 +1,7 @@
+
+> server@1.0.0 start
+> node server.js
+
+[dotenv@17.2.3] injecting env (0) from .env -- tip: ⚙️  load multiple .env files with { path: ['.env.local', '.env'] }
+Database connected.
+Server is running on port 3000
