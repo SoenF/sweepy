@@ -11,9 +11,10 @@ const Chores = React.lazy(() => import('./pages/Chores'));
 const Calendar = React.lazy(() => import('./pages/Calendar'));
 const Login = React.lazy(() => import('./pages/Login'));
 
-// Protected Route wrapper
 const ProtectedRoute = ({ children }) => {
-  const { isAuthenticated, loading, isMobile } = useAuth();
+  const { isAuthenticated, loading, isMobile, token } = useAuth();
+
+  console.log('🔒 ProtectedRoute check:', { isAuthenticated, loading, isMobile, hasToken: !!token });
 
   if (loading) {
     return <div style={{ padding: '2rem', textAlign: 'center' }}>Loading...</div>;
@@ -26,9 +27,11 @@ const ProtectedRoute = ({ children }) => {
 
   // Web app requires authentication
   if (!isAuthenticated) {
+    console.log('❌ Not authenticated, redirecting to login');
     return <Navigate to="/login" replace />;
   }
 
+  console.log('✅ Authenticated, rendering protected content');
   return children;
 };
 

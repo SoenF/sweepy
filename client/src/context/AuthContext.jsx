@@ -19,6 +19,8 @@ export const AuthProvider = ({ children }) => {
 
     // Mobile app doesn't need authentication
     useEffect(() => {
+        console.log('🔐 AuthContext init, isMobile:', isMobile);
+
         if (isMobile) {
             setLoading(false);
             return;
@@ -28,9 +30,14 @@ export const AuthProvider = ({ children }) => {
         const storedToken = localStorage.getItem('auth_token');
         const storedFamily = localStorage.getItem('auth_family');
 
+        console.log('🔐 Restoring from localStorage:', { hasToken: !!storedToken, hasFamily: !!storedFamily });
+
         if (storedToken && storedFamily) {
             setToken(storedToken);
             setFamily(JSON.parse(storedFamily));
+            console.log('✅ Session restored from localStorage');
+        } else {
+            console.log('❌ No session found in localStorage');
         }
 
         setLoading(false);
