@@ -17,8 +17,29 @@ const fetchWithCache = async (endpoint, options = {}) => {
     const url = `${getApiUrl()}${endpoint}`;
     const cacheKey = `cache_${endpoint}`;
 
+    // Add JWT token to headers if available (web only)
+    if (!isMobile) {
+        const token = localStorage.getItem('auth_token');
+        if (token) {
+            options.headers = {
+                ...options.headers,
+                'Authorization': `Bearer ${token}`
+            };
+        }
+    }
+
     try {
         const res = await fetch(url, options);
+
+        // Handle authentication errors
+        if (res.status === 401 && !isMobile) {
+            // Token expired or invalid - redirect to login
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('auth_family');
+            window.location.href = '/login';
+            throw new Error('Authentication required');
+        }
+
         if (!res.ok) throw new Error(`Request failed: ${res.status}`);
 
         const data = await res.json();
@@ -81,6 +102,15 @@ export const createChore = async (data) => {
     if (isMobile) return DB.addLocalChore(data);
     return fetchWithCache('/chores', {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    });
+};
+
+export const updateChore = async (id, data) => {
+    if (isMobile) return DB.updateLocalChore(id, data);
+    return fetchWithCache(`/chores/${id}`, {
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
     });

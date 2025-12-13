@@ -1,6 +1,12 @@
 const mongoose = require('mongoose');
 
 const ChoreSchema = new mongoose.Schema({
+    family_id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Family',
+        required: true,
+        index: true
+    },
     name: {
         type: String,
         required: true,
@@ -22,6 +28,12 @@ const ChoreSchema = new mongoose.Schema({
     auto_assign: {
         type: Boolean,
         default: true
+    },
+    assigned_members: {
+        type: [mongoose.Schema.Types.ObjectId],
+        ref: 'Member',
+        default: [],
+        index: true
     }
 }, {
     timestamps: true,

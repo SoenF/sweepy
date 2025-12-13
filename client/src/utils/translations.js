@@ -47,6 +47,12 @@ export const translations = {
         fetchError: "Failed to fetch chores",
         createError: "Failed to create chore",
         deleteError: "Failed to delete chore",
+        legend: "Legend",
+        edit: "Edit",
+        editChore: "Edit Chore",
+        updateChore: "Update Chore",
+        cancel: "Cancel",
+        assignedMembers: "Assigned Members",
     },
     fr: {
         // Navigation
@@ -96,5 +102,11 @@ export const translations = {
         fetchError: "Échec du chargement des tâches",
         createError: "Échec de la création de la tâche",
         deleteError: "Échec de la suppression de la tâche",
+        legend: "Légende",
+        edit: "Modifier",
+        editChore: "Modifier la tâche",
+        updateChore: "Mettre à jour",
+        cancel: "Annuler",
+        assignedMembers: "Membres assignés",
     }
 };

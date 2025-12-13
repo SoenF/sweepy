@@ -1,11 +1,21 @@
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Users, CheckSquare, Calendar as CalendarIcon, Globe } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { LayoutDashboard, Users, CheckSquare, Calendar as CalendarIcon, Globe, LogOut } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
+import { useAuth } from '../context/AuthContext';
+import { Capacitor } from '@capacitor/core';
 
 const Layout = ({ children }) => {
     const location = useLocation();
+    const navigate = useNavigate();
     const { t, language, toggleLanguage } = useLanguage();
+    const { logout, family } = useAuth();
+    const isMobile = Capacitor.isNativePlatform();
+
+    const handleLogout = () => {
+        logout();
+        navigate('/login');
+    };
 
     const navItems = [
         { path: '/', icon: LayoutDashboard, label: t('dashboard') },
@@ -90,6 +100,29 @@ const Layout = ({ children }) => {
                     <Globe size={18} />
                     {language === 'en' ? 'Français' : 'English'}
                 </button>
+
+                {/* Logout button - Web only */}
+                {!isMobile && family && (
+                    <button
+                        onClick={handleLogout}
+                        style={{
+                            padding: '0.75rem 1rem',
+                            borderRadius: 'var(--radius-sm)',
+                            border: '1px solid rgba(239, 68, 68, 0.2)',
+                            backgroundColor: 'white',
+                            color: '#dc2626',
+                            cursor: 'pointer',
+                            fontWeight: 600,
+                            display: 'flex', alignItems: 'center', gap: '0.75rem',
+                            marginTop: '0.5rem',
+                            boxShadow: 'var(--shadow-sm)',
+                            transition: 'all 0.2s'
+                        }}
+                    >
+                        <LogOut size={18} />
+                        Logout
+                    </button>
+                )}
             </aside>
 
             {/* Bottom Navigation - Mobile Only */}

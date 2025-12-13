@@ -1,6 +1,12 @@
 const mongoose = require('mongoose');
 
 const MemberSchema = new mongoose.Schema({
+    family_id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Family',
+        required: true,
+        index: true
+    },
     name: {
         type: String,
         required: true,

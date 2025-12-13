@@ -1,6 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const choreController = require('../controllers/choreController');
+const authMiddleware = require('../middleware/auth');
+
+// All chore routes require authentication
+router.use(authMiddleware);
 
 router.get('/', choreController.getAllChores);
 router.post('/', choreController.createChore);

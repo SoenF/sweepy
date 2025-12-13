@@ -1,6 +1,12 @@
 const mongoose = require('mongoose');
 
 const AssignmentSchema = new mongoose.Schema({
+    family_id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Family',
+        required: true,
+        index: true
+    },
     chore_id: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Chore',

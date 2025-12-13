@@ -1,14 +1,18 @@
 const express = require('express');
 const router = express.Router();
 const schedulerService = require('../services/schedulerService');
+const authMiddleware = require('../middleware/auth');
 
 const { Assignment, Member, Chore } = require('../models');
+
+// All schedule routes require authentication
+router.use(authMiddleware);
 
 // GET /api/schedule?start=YYYY-MM-DD&end=YYYY-MM-DD
 router.get('/', async (req, res) => {
     try {
         const { start, end } = req.query;
-        const query = {};
+        const query = { family_id: req.family_id };
 
         if (start && end) {
             // String comparison works for YYYY-MM-DD
@@ -54,7 +58,7 @@ router.get('/', async (req, res) => {
 router.post('/generate', async (req, res) => {
     try {
         const { days } = req.body;
-        const assignments = await schedulerService.generateAssignments(days || 30);
+        const assignments = await schedulerService.generateAssignments(days || 30, req.family_id);
         res.json({ message: 'Schedule updated', count: assignments.length, assignments });
     } catch (err) {
         console.error(err);
@@ -68,7 +72,7 @@ router.patch('/:id/toggle', async (req, res) => {
         const { id } = req.params;
         const { member_id } = req.body; // Optional reassign
 
-        const assignment = await Assignment.findById(id).populate('chore_id').populate('member_id');
+        const assignment = await Assignment.findOne({ _id: id, family_id: req.family_id }).populate('chore_id').populate('member_id');
         if (!assignment) return res.status(404).json({ error: 'Assignment not found' });
 
         const previousStatus = assignment.status;

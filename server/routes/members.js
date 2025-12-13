@@ -1,6 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const memberController = require('../controllers/memberController');
+const authMiddleware = require('../middleware/auth');
+
+// All member routes require authentication
+router.use(authMiddleware);
 
 router.get('/', memberController.getAllMembers);
 router.post('/', memberController.createMember);

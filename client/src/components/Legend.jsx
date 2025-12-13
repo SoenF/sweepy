@@ -1,7 +1,10 @@
 import React from 'react';
 import { getMemberColor } from '../utils/colors';
+import { useLanguage } from '../context/LanguageContext';
 
 const Legend = ({ members }) => {
+    const { t } = useLanguage();
+
     if (!members || members.length === 0) return null;
 
     return (
@@ -16,7 +19,7 @@ const Legend = ({ members }) => {
             marginTop: '1rem' // Space above
         }}>
             <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'hsl(var(--text-muted))', marginRight: '0.5rem' }}>
-                Legend:
+                {t('legend')}:
             </span>
             {members.map(member => (
                 <div key={member.id} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
