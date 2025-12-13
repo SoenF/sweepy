@@ -1,10 +1,13 @@
 import { Capacitor } from '@capacitor/core';
 import * as DB from '../services/Database';
 
-// Use a dynamic URL if set in localStorage (useful for mobile testing on same wifi)
-// Otherwise default to localhost. Can be overridden in console via: localStorage.setItem('API_URL', 'http://192.168.x.x:3000')
+// Use environment variable first, then localStorage as override, finally default
 const getApiUrl = () => {
-    return localStorage.getItem('API_URL') || 'http://localhost:3000/api';
+    // Priority: env var → localStorage override → fallback
+    const envUrl = import.meta.env.VITE_API_URL;
+    const storageUrl = localStorage.getItem('API_URL');
+
+    return storageUrl || envUrl || 'http://localhost:3000/api';
 };
 
 const isMobile = Capacitor.isNativePlatform();
