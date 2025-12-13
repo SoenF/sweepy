@@ -91,3 +91,55 @@ h5 {
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
 }
+
+/* Mobile Responsiveness & Layout Overrides */
+
+/* Default (Desktop) */
+.mobile-bottom-nav {
+  display: none !important;
+}
+
+.desktop-sidebar {
+  display: flex !important;
+}
+
+.main-content {
+  margin-left: 260px;
+  /* Sidebar width */
+  padding-bottom: 2rem;
+}
+
+/* Mobile (Tablet and below) */
+@media (max-width: 768px) {
+  .desktop-sidebar {
+    display: none !important;
+  }
+
+  .mobile-bottom-nav {
+    display: flex !important;
+  }
+
+  .main-content {
+    margin-left: 0 !important;
+    padding: 1.5rem !important;
+    padding-bottom: 100px !important;
+    /* Space for bottom nav */
+  }
+
+  h1 {
+    font-size: 1.75rem;
+  }
+
+  h2 {
+    font-size: 1.5rem;
+  }
+
+  h3 {
+    font-size: 1.25rem;
+  }
+
+  button {
+    min-height: 44px;
+    /* Better touch target */
+  }
+}

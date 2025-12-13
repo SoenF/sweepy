@@ -15,11 +15,11 @@ const Layout = ({ children }) => {
     ];
 
     return (
-        <div style={{ display: 'flex', minHeight: '100vh' }}>
-            {/* Sidebar */}
-            <aside style={{
+        <div style={{ display: 'flex', minHeight: '100vh', flexDirection: 'column' }}>
+            {/* Sidebar - Desktop Only */}
+            <aside className="desktop-sidebar" style={{
                 width: '260px',
-                backgroundColor: 'hsl(var(--bg-body))', // Match body for seamless feel or slightly darker
+                backgroundColor: 'hsl(var(--bg-body))',
                 borderRight: '1px solid rgba(0,0,0,0.05)',
                 padding: '2rem 1.5rem',
                 position: 'fixed',
@@ -27,19 +27,18 @@ const Layout = ({ children }) => {
                 left: 0,
                 top: 0,
                 display: 'flex',
-                flexDirection: 'column'
+                flexDirection: 'column',
+                zIndex: 50
             }}>
+                {/* ... Sidebar Content ... */}
                 <div style={{ marginBottom: '3rem', display: 'flex', alignItems: 'center', gap: '0.75rem', paddingLeft: '0.5rem' }}>
                     <div style={{
-                        width: 40,
-                        height: 40,
+                        width: 40, height: 40,
                         background: 'linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)))',
-                        borderRadius: 12, // slightly rounder
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
+                        borderRadius: 12,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
                         color: 'white',
-                        boxShadow: '0 4px 12px rgba(99, 102, 241, 0.3)' // Glowing shadow
+                        boxShadow: '0 4px 12px rgba(99, 102, 241, 0.3)'
                     }}>
                         <CheckSquare size={22} strokeWidth={2.5} />
                     </div>
@@ -57,15 +56,12 @@ const Layout = ({ children }) => {
                                 style={{
                                     padding: '0.75rem 1rem',
                                     borderRadius: 'var(--radius-sm)',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '0.85rem',
+                                    display: 'flex', alignItems: 'center', gap: '0.85rem',
                                     color: isActive ? 'hsl(var(--primary))' : 'hsl(var(--text-muted))',
                                     backgroundColor: isActive ? 'white' : 'transparent',
                                     boxShadow: isActive ? 'var(--shadow-sm)' : 'none',
                                     fontWeight: isActive ? 600 : 500,
-                                    transition: 'all 0.2s',
-                                    fontSize: '0.95rem'
+                                    transition: 'all 0.2s', fontSize: '0.95rem'
                                 }}
                             >
                                 <Icon size={20} strokeWidth={isActive ? 2.5 : 2} style={{ opacity: isActive ? 1 : 0.7 }} />
@@ -75,7 +71,6 @@ const Layout = ({ children }) => {
                     })}
                 </nav>
 
-                {/* Language Toggle */}
                 <button
                     onClick={toggleLanguage}
                     style={{
@@ -86,9 +81,7 @@ const Layout = ({ children }) => {
                         color: 'hsl(var(--text-main))',
                         cursor: 'pointer',
                         fontWeight: 600,
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.75rem',
+                        display: 'flex', alignItems: 'center', gap: '0.75rem',
                         marginTop: 'auto',
                         boxShadow: 'var(--shadow-sm)',
                         transition: 'all 0.2s'
@@ -99,11 +92,43 @@ const Layout = ({ children }) => {
                 </button>
             </aside>
 
+            {/* Bottom Navigation - Mobile Only */}
+            <nav className="mobile-bottom-nav" style={{
+                position: 'fixed',
+                bottom: 0, left: 0, right: 0,
+                backgroundColor: 'white',
+                borderTop: '1px solid rgba(0,0,0,0.05)',
+                display: 'flex', justifyContent: 'space-around', alignItems: 'center',
+                padding: '0.75rem 0.5rem',
+                zIndex: 100,
+                boxShadow: '0 -4px 12px rgba(0,0,0,0.05)'
+            }}>
+                {navItems.map((item) => {
+                    const isActive = location.pathname === item.path;
+                    const Icon = item.icon;
+                    return (
+                        <Link
+                            key={item.path}
+                            to={item.path}
+                            style={{
+                                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.25rem',
+                                color: isActive ? 'hsl(var(--primary))' : 'hsl(var(--text-muted))',
+                                flex: 1,
+                                fontSize: '0.75rem',
+                                fontWeight: isActive ? 600 : 500
+                            }}
+                        >
+                            <Icon size={24} strokeWidth={isActive ? 2.5 : 2} />
+                            <span>{item.label}</span>
+                        </Link>
+                    )
+                })}
+            </nav>
+
             {/* Main Content */}
-            <main style={{
+            <main className="main-content" style={{
                 flex: 1,
                 padding: '2rem',
-                marginLeft: '250px', // Component for sidebar
                 maxWidth: '100%'
             }}>
                 <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
