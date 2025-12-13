@@ -12,6 +12,9 @@ connectDB();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Trust proxy - Required for Render deployment and rate limiting
+app.set('trust proxy', 1);
+
 // CORS Configuration
 const corsOptions = {
     origin: function (origin, callback) {
