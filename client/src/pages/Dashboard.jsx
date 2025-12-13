@@ -64,7 +64,7 @@ const Dashboard = () => {
                 </p>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '2rem', alignItems: 'start' }}>
+            <div className="dashboard-grid">
                 {/* Today's Chores - ONLY SHOW IF THERE ARE CHORES */}
                 {todaysChores.length > 0 && (
                     <div>

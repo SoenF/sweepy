@@ -78,89 +78,170 @@ const Calendar = () => {
         });
     };
 
+    const [selectedDate, setSelectedDate] = useState(new Date());
+
+    const handleDayClick = (day) => {
+        setSelectedDate(day);
+    };
+
+    const selectedDayAssignments = getDayAssignments(selectedDate);
+
     return (
         <div>
             <div className="page-header-responsive">
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', justifyContent: 'center', width: '100%' }}>
                     <Button variant="ghost" onClick={prevMonth}><ChevronLeft /></Button>
-                    <h2 style={{ textAlign: 'center', flex: 1, minWidth: '150px' }}>
+                    <h2 style={{ textAlign: 'center', flex: 1, minWidth: '150px' }} className="capitalize-first">
                         {format(currentDate, 'MMMM yyyy', { locale: dateLocale })}
                     </h2>
                     <Button variant="ghost" onClick={nextMonth}><ChevronRight /></Button>
                 </div>
 
-                <Button onClick={handleGenerate} variant="secondary" style={{ whiteSpace: 'nowrap' }}>
-                    <RefreshCw size={18} /> {t('autoGenerate')}
+                <Button
+                    onClick={handleGenerate}
+                    variant="secondary"
+                    className="mobile-full-width"
+                    style={{ whiteSpace: 'nowrap' }}
+                >
+                    <RefreshCw size={18} /> Mettre à jour
                 </Button>
             </div>
 
-            <Card style={{ padding: 0, overflow: 'hidden' }}>
-                {/* Days Header */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
-                    {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                        <div key={day} style={{ padding: '1rem', textAlign: 'center', fontWeight: 600, color: 'hsl(var(--text-muted))' }}>
-                            {day}
-                        </div>
-                    ))}
-                </div>
-
-                {/* Days Grid */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)' }}>
-                    {dateRange.map(day => {
-                        const dayAssignments = getDayAssignments(day);
-                        const isCurrentMonth = isSameMonth(day, monthStart);
-
-                        return (
-                            <div
-                                key={day.toString()}
-                                style={{
-                                    minHeight: '120px',
-                                    padding: '0.5rem',
-                                    borderRight: '1px solid #f1f5f9',
-                                    borderBottom: '1px solid #f1f5f9',
-                                    backgroundColor: isCurrentMonth ? 'white' : '#f8fafc',
-                                    opacity: isCurrentMonth ? 1 : 0.6
-                                }}
-                            >
-                                <div style={{ marginBottom: '0.5rem', fontWeight: 500, fontSize: '0.9rem', color: isSameDay(day, new Date()) ? 'hsl(var(--primary))' : 'inherit' }}>
-                                    {format(day, 'd')}
-                                </div>
-
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                                    {dayAssignments.map(assignment => (
-                                        <div
-                                            key={assignment.id}
-                                            style={{
-                                                fontSize: '0.75rem',
-                                                padding: '0.25rem 0.5rem',
-                                                backgroundColor: assignment.status === 'completed' ? '#dcfce7' : 'hsl(var(--primary) / 0.1)',
-                                                color: assignment.status === 'completed' ? '#166534' : 'hsl(var(--primary-dark))',
-                                                borderRadius: '4px',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                gap: '0.25rem',
-                                                cursor: 'pointer',
-                                                textDecoration: assignment.status === 'completed' ? 'line-through' : 'none'
-                                            }}
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                handleToggle(assignment);
-                                            }}
-                                            title="Click to toggle completion"
-                                        >
-                                            {assignment.status === 'completed' && <CheckCircle size={10} />}
-                                            <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontWeight: 600 }}>
-                                                {assignment.Member?.name}
-                                            </span>
-                                            <span style={{ opacity: 0.8 }}>: {assignment.Chore?.name}</span>
-                                        </div>
-                                    ))}
-                                </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '2rem' }}>
+                <Card style={{ padding: 0, overflow: 'hidden' }}>
+                    {/* Days Header */}
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
+                        {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day, i) => (
+                            <div key={i} style={{ padding: '1rem 0.5rem', textAlign: 'center', fontWeight: 600, color: 'hsl(var(--text-muted))', fontSize: '0.8rem' }}>
+                                {day.substring(0, 3)}
                             </div>
-                        );
-                    })}
+                        ))}
+                    </div>
+
+                    {/* Days Grid */}
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)' }}>
+                        {dateRange.map((day, idx) => {
+                            const dayAssignments = getDayAssignments(day);
+                            const isCurrentMonth = isSameMonth(day, monthStart);
+                            const isSelected = isSameDay(day, selectedDate);
+                            const isToday = isSameDay(day, new Date());
+
+                            return (
+                                <div
+                                    key={day.toString()}
+                                    onClick={() => handleDayClick(day)}
+                                    className={isSelected ? 'calendar-day-selected' : ''}
+                                    style={{
+                                        minHeight: '80px', // Reduced height for mobile goodness
+                                        padding: '0.25rem',
+                                        borderRight: '1px solid #f1f5f9',
+                                        borderBottom: '1px solid #f1f5f9',
+                                        backgroundColor: isCurrentMonth ? 'white' : '#f8fafc',
+                                        opacity: isCurrentMonth ? 1 : 0.6,
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        alignItems: 'center'
+                                    }}
+                                >
+                                    <div style={{
+                                        fontWeight: 500,
+                                        fontSize: '0.85rem',
+                                        width: '24px', height: '24px',
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                        marginBottom: '0.25rem',
+                                        borderRadius: '50%',
+                                        backgroundColor: isToday ? 'hsl(var(--primary))' : 'transparent',
+                                        color: isToday ? 'white' : 'inherit'
+                                    }}>
+                                        {format(day, 'd')}
+                                    </div>
+
+                                    {/* Desktop View: Full Text */}
+                                    <div className="calendar-cell-content" style={{ width: '100%' }}>
+                                        {dayAssignments.map(assignment => (
+                                            <div
+                                                key={assignment.id}
+                                                style={{
+                                                    fontSize: '0.7rem',
+                                                    padding: '2px 4px',
+                                                    backgroundColor: assignment.status === 'completed' ? '#dcfce7' : 'hsl(var(--primary) / 0.1)',
+                                                    color: assignment.status === 'completed' ? '#166534' : 'hsl(var(--primary-dark))',
+                                                    borderRadius: '4px',
+                                                    whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'
+                                                }}
+                                            >
+                                                {assignment.Member?.name}
+                                            </div>
+                                        ))}
+                                    </div>
+
+                                    {/* Mobile View: Dots */}
+                                    <div className="calendar-dots-container">
+                                        {dayAssignments.map(assignment => (
+                                            <div
+                                                key={assignment.id}
+                                                className="calendar-dot"
+                                                style={{
+                                                    backgroundColor: assignment.status === 'completed' ? '#22c55e' : 'hsl(var(--primary))'
+                                                }}
+                                            />
+                                        ))}
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </Card>
+
+                {/* Selected Day Details (Always visible, but mostly for mobile utility) */}
+                <div style={{ paddingBottom: '2rem' }}>
+                    <h3 style={{ marginBottom: '1rem', className: 'capitalize-first' }}>
+                        {format(selectedDate, 'EEEE d MMMM', { locale: dateLocale })}
+                    </h3>
+
+                    {selectedDayAssignments.length === 0 ? (
+                        <p style={{ color: 'hsl(var(--text-muted))', fontStyle: 'italic' }}>{t('noChores') || "No chores for this day."}</p>
+                    ) : (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                            {selectedDayAssignments.map(assignment => (
+                                <Card
+                                    key={assignment.id}
+                                    style={{
+                                        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                                        padding: '1rem',
+                                        borderLeft: `4px solid ${assignment.status === 'completed' ? '#22c55e' : 'hsl(var(--primary))'}`
+                                    }}
+                                    onClick={() => handleToggle(assignment)}
+                                >
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                        <div style={{ color: assignment.status === 'completed' ? '#22c55e' : '#cbd5e1' }}>
+                                            <CheckCircle size={24} fill={assignment.status === 'completed' ? 'currentColor' : 'none'} />
+                                        </div>
+                                        <div>
+                                            <div style={{ fontWeight: 600, textDecoration: assignment.status === 'completed' ? 'line-through' : 'none' }}>
+                                                {assignment.Chore?.name}
+                                            </div>
+                                            <div style={{ fontSize: '0.85rem', color: 'hsl(var(--text-muted))', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                <Avatar name={assignment.Member?.name} url={assignment.Member?.avatar} size={20} />
+                                                {assignment.Member?.name}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {/* Points Badge */}
+                                    <div style={{
+                                        fontSize: '0.75rem', fontWeight: 700,
+                                        backgroundColor: 'hsl(var(--bg-body))', padding: '0.25rem 0.5rem', borderRadius: '12px',
+                                        color: 'hsl(var(--text-muted))'
+                                    }}>
+                                        {assignment.Chore?.difficulty || 1} pts
+                                    </div>
+                                </Card>
+                            ))}
+                        </div>
+                    )}
                 </div>
-            </Card>
+            </div>
         </div>
     );
 };

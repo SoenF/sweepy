@@ -101,8 +101,7 @@ export const getAssignments = async (start, end) => {
 };
 
 export const generateSchedule = async (days = 30) => {
-    // Mobile generation not yet implemented
-    if (isMobile) return [];
+    if (isMobile) return DB.generateLocalSchedule(days);
     return fetchWithCache('/schedule/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -111,8 +110,7 @@ export const generateSchedule = async (days = 30) => {
 };
 
 export const toggleTask = async (id, memberId = null) => {
-    // Mobile toggle not yet fully implemented in DB
-    if (isMobile) return;
+    if (isMobile) return DB.toggleLocalTask(id, memberId);
     return fetchWithCache(`/schedule/${id}/toggle`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },

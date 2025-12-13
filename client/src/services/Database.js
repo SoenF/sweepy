@@ -164,12 +164,128 @@ export const deleteLocalChore = async (id) => {
 };
 
 // --- Assignments (Basic Placeholder) ---
+import { format, addDays, addWeeks, addMonths, parseISO, isAfter, isSameDay } from 'date-fns';
+
+// ... (previous imports and init)
+
+// --- Assignments & Scheduling ---
+
 export const getLocalAssignments = async (start, end) => {
-    // For now returning empty or simple logic.
-    // The user didn't ask for full scheduling logic ON MOBILE yet, just "adding, editing tasks/members".
-    // We can list basic assignments if we insert them manually? 
-    // Or just return empty to prevent errors on the Scheduler page.
     if (!db) return [];
-    // Maybe query by date if we stored it
-    return [];
+    try {
+        // Simple string comparison for dates works because format is YYYY-MM-DD
+        const query = `
+            SELECT a.id, a.date, a.status, a.chore_id, a.member_id,
+                   c.name as chore_name, c.difficulty,
+                   m.name as member_name, m.avatar, m.total_points
+            FROM assignments a
+            LEFT JOIN chores c ON a.chore_id = c.id
+            LEFT JOIN members m ON a.member_id = m.id
+            WHERE a.date >= ? AND a.date <= ?
+            ORDER BY a.date ASC
+        `;
+        const res = await db.query(query, [start, end]);
+
+        // Transform to match API format
+        return (res.values || []).map(row => ({
+            id: row.id,
+            date: row.date,
+            status: row.status,
+            chore_id: row.chore_id,
+            member_id: row.member_id,
+            Chore: { id: row.chore_id, name: row.chore_name, difficulty: row.difficulty },
+            Member: { id: row.member_id, name: row.member_name, avatar: row.avatar, total_points: row.total_points }
+        }));
+    } catch (err) {
+        console.error(err);
+        return [];
+    }
 };
+
+export const toggleLocalTask = async (id, memberId = null) => {
+    if (!db) return;
+    try {
+        // 1. Get current status
+        const res = await db.query('SELECT * FROM assignments WHERE id = ?', [id]);
+        if (!res.values.length) return;
+        const task = res.values[0];
+
+        const newStatus = task.status === 'completed' ? 'pending' : 'completed';
+
+        // 2. Update status
+        await db.run('UPDATE assignments SET status = ? WHERE id = ?', [newStatus, id]);
+
+        // 3. Update Points
+        const choreRes = await db.query('SELECT difficulty FROM chores WHERE id = ?', [task.chore_id]);
+        const points = choreRes.values[0]?.difficulty || 1;
+        const targetMemberId = memberId || task.member_id;
+
+        if (newStatus === 'completed') {
+            await db.run('UPDATE members SET total_points = total_points + ? WHERE id = ?', [points, targetMemberId]);
+        } else {
+            await db.run('UPDATE members SET total_points = total_points - ? WHERE id = ?', [points, targetMemberId]);
+        }
+
+    } catch (err) {
+        console.error(err);
+        throw err;
+    }
+};
+
+export const generateLocalSchedule = async (days = 30) => {
+    if (!db) return;
+    try {
+        const chores = (await db.query('SELECT * FROM chores WHERE auto_assign = 1')).values || [];
+        const members = (await db.query('SELECT * FROM members')).values || [];
+
+        if (!chores.length || !members.length) return;
+
+        const today = new Date();
+        const endDate = addDays(today, days);
+        const todayStr = format(today, 'yyyy-MM-dd');
+
+        for (const chore of chores) {
+            // 1. Clear future pending
+            await db.run('DELETE FROM assignments WHERE chore_id = ? AND date > ? AND status = ?', [chore.id, todayStr, 'pending']);
+
+            // 2. Find last date
+            const lastRes = await db.query('SELECT date FROM assignments WHERE chore_id = ? ORDER BY date DESC LIMIT 1', [chore.id]);
+            let nextDate = new Date();
+
+            if (lastRes.values.length > 0) {
+                const lastDate = parseISO(lastRes.values[0].date);
+                nextDate = calculateNextDate(lastDate, chore.frequency_value, chore.frequency_type);
+                if (nextDate <= today) nextDate = addDays(today, 1);
+            }
+
+            // 3. Generate
+            while (nextDate <= endDate) {
+                const dateStr = format(nextDate, 'yyyy-MM-dd');
+
+                // Check dupes
+                const exists = await db.query('SELECT id FROM assignments WHERE chore_id = ? AND date = ?', [chore.id, dateStr]);
+                if (exists.values.length === 0) {
+                    // Pick Member (Simple Round Robin or Random)
+                    // For improved consistency, pick member with FEWEST assignments in general, or simplified round robin based on day?
+                    // Let's use simple random for now to match simplicity requirement, or modulo date
+                    const memberIndex = Math.floor(Math.random() * members.length);
+                    const member = members[memberIndex];
+
+                    await db.run('INSERT INTO assignments (chore_id, member_id, date, status) VALUES (?, ?, ?, ?)',
+                        [chore.id, member.id, dateStr, 'pending']);
+                }
+
+                nextDate = calculateNextDate(nextDate, chore.frequency_value, chore.frequency_type);
+            }
+        }
+    } catch (err) {
+        console.error(err);
+        throw err;
+    }
+};
+
+function calculateNextDate(currentDate, value, type) {
+    if (type === 'weeks') return addWeeks(currentDate, value);
+    if (type === 'months') return addMonths(currentDate, value);
+    return addDays(currentDate, value);
+}
