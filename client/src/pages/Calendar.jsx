@@ -4,12 +4,15 @@ import Card from '../components/Card';
 import Avatar from '../components/Avatar';
 import Button from '../components/Button';
 import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths } from 'date-fns';
+import { fr, enUS } from 'date-fns/locale';
 import { ChevronLeft, ChevronRight, RefreshCw, CheckCircle } from 'lucide-react';
-
 import { useLanguage } from '../context/LanguageContext';
 
 const Calendar = () => {
-    const { t } = useLanguage();
+    const { t, language } = useLanguage();
+    // Select locale based on context (default to enUS if undefined)
+    const dateLocale = language === 'fr' ? fr : enUS;
+
     const [currentDate, setCurrentDate] = useState(new Date());
     const [assignments, setAssignments] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -80,7 +83,9 @@ const Calendar = () => {
             <div className="page-header-responsive">
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', justifyContent: 'center', width: '100%' }}>
                     <Button variant="ghost" onClick={prevMonth}><ChevronLeft /></Button>
-                    <h2 style={{ textAlign: 'center', flex: 1, minWidth: '150px' }}>{format(currentDate, 'MMMM yyyy')}</h2>
+                    <h2 style={{ textAlign: 'center', flex: 1, minWidth: '150px' }}>
+                        {format(currentDate, 'MMMM yyyy', { locale: dateLocale })}
+                    </h2>
                     <Button variant="ghost" onClick={nextMonth}><ChevronRight /></Button>
                 </div>
 
