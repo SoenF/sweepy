@@ -4,13 +4,19 @@ import Card from '../components/Card';
 import Avatar from '../components/Avatar';
 import { format } from 'date-fns';
 import { fr, enUS } from 'date-fns/locale';
-import { CheckCircle, Trophy, Calendar, RefreshCcw } from 'lucide-react';
+import { CheckCircle, Trophy, Calendar, RefreshCcw, Globe, LogOut } from 'lucide-react';
 import Button from '../components/Button';
 
 import { useLanguage } from '../context/LanguageContext';
+import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import { Capacitor } from '@capacitor/core';
 
 const Dashboard = () => {
-    const { t, language } = useLanguage();
+    const { t, language, toggleLanguage } = useLanguage();
+    const { logout, family } = useAuth();
+    const navigate = useNavigate();
+    const isMobile = Capacitor.isNativePlatform();
     const [members, setMembers] = useState([]);
     const [todaysChores, setTodaysChores] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -55,13 +61,38 @@ const Dashboard = () => {
     };
 
     return (
-        <div>
-            <div style={{ marginBottom: '2rem' }}>
-                <h2 style={{ fontSize: '1.75rem', marginBottom: '0.25rem' }}>{t('welcome')}</h2>
-                <p style={{ color: 'hsl(var(--text-muted))' }}>
-                    {language === 'fr' ? "C'est " : "It's "}
-                    {format(today, 'EEEE d MMMM yyyy', { locale: dateLocale })}
-                </p>
+        <div style={{ position: 'relative' }}>
+            <div style={{ marginBottom: '2rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
+                <div>
+                    <h2 style={{ fontSize: '1.75rem', marginBottom: '0.25rem' }}>{t('welcome')}</h2>
+                    <p style={{ color: 'hsl(var(--text-muted))' }}>
+                        {language === 'fr' ? "C'est " : "It's "}
+                        {format(today, 'EEEE d MMMM yyyy', { locale: dateLocale })}
+                    </p>
+                </div>
+
+                {/* Language Toggle Button */}
+                <button
+                    onClick={toggleLanguage}
+                    style={{
+                        padding: '0.5rem 1rem',
+                        borderRadius: 'var(--radius-sm)',
+                        border: '1px solid rgba(0,0,0,0.1)',
+                        backgroundColor: 'white',
+                        color: 'hsl(var(--text-main))',
+                        cursor: 'pointer',
+                        fontWeight: 600,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                        boxShadow: 'var(--shadow-sm)',
+                        transition: 'all 0.2s',
+                        fontSize: '0.9rem'
+                    }}
+                >
+                    <Globe size={18} />
+                    {language === 'en' ? 'Français' : 'English'}
+                </button>
             </div>
 
             <div className="dashboard-grid">
@@ -204,6 +235,47 @@ const Dashboard = () => {
                     )}
                 </div>
             </div>
+
+            {/* Logout Button - Bottom Right (Web Only) */}
+            {!isMobile && family && (
+                <button
+                    onClick={() => {
+                        logout();
+                        navigate('/login');
+                    }}
+                    style={{
+                        position: 'fixed',
+                        bottom: '2rem',
+                        right: '2rem',
+                        padding: '0.75rem 1.25rem',
+                        borderRadius: 'var(--radius-sm)',
+                        border: '1px solid rgba(239, 68, 68, 0.3)',
+                        backgroundColor: 'white',
+                        color: '#dc2626',
+                        cursor: 'pointer',
+                        fontWeight: 600,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                        boxShadow: '0 4px 12px rgba(220, 38, 38, 0.15)',
+                        transition: 'all 0.2s',
+                        zIndex: 50
+                    }}
+                    onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = '#fef2f2';
+                        e.currentTarget.style.transform = 'translateY(-2px)';
+                        e.currentTarget.style.boxShadow = '0 6px 16px rgba(220, 38, 38, 0.2)';
+                    }}
+                    onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = 'white';
+                        e.currentTarget.style.transform = 'translateY(0)';
+                        e.currentTarget.style.boxShadow = '0 4px 12px rgba(220, 38, 38, 0.15)';
+                    }}
+                >
+                    <LogOut size={18} />
+                    Logout
+                </button>
+            )}
         </div>
     );
 };

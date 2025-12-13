@@ -132,7 +132,7 @@ const Layout = ({ children }) => {
                 backgroundColor: 'white',
                 borderTop: '1px solid rgba(0,0,0,0.05)',
                 display: 'flex', justifyContent: 'space-around', alignItems: 'center',
-                padding: '0.75rem 0.25rem',
+                padding: '0.75rem 0.5rem',
                 zIndex: 100,
                 boxShadow: '0 -4px 12px rgba(0,0,0,0.05)'
             }}>
@@ -147,56 +147,15 @@ const Layout = ({ children }) => {
                                 display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.25rem',
                                 color: isActive ? 'hsl(var(--primary))' : 'hsl(var(--text-muted))',
                                 flex: 1,
-                                fontSize: '0.7rem',
-                                fontWeight: isActive ? 600 : 500,
-                                padding: '0.25rem'
+                                fontSize: '0.75rem',
+                                fontWeight: isActive ? 600 : 500
                             }}
                         >
-                            <Icon size={22} strokeWidth={isActive ? 2.5 : 2} />
+                            <Icon size={24} strokeWidth={isActive ? 2.5 : 2} />
                             <span>{item.label}</span>
                         </Link>
                     )
                 })}
-
-                {/* Language Toggle for Mobile */}
-                <button
-                    onClick={toggleLanguage}
-                    style={{
-                        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.25rem',
-                        color: 'hsl(var(--text-muted))',
-                        flex: 1,
-                        fontSize: '0.7rem',
-                        fontWeight: 500,
-                        background: 'none',
-                        border: 'none',
-                        cursor: 'pointer',
-                        padding: '0.25rem'
-                    }}
-                >
-                    <Globe size={22} strokeWidth={2} />
-                    <span>{language === 'en' ? 'FR' : 'EN'}</span>
-                </button>
-
-                {/* Logout for Web (Mobile Browser) */}
-                {!isMobile && family && (
-                    <button
-                        onClick={handleLogout}
-                        style={{
-                            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.25rem',
-                            color: '#dc2626',
-                            flex: 1,
-                            fontSize: '0.7rem',
-                            fontWeight: 500,
-                            background: 'none',
-                            border: 'none',
-                            cursor: 'pointer',
-                            padding: '0.25rem'
-                        }}
-                    >
-                        <LogOut size={22} strokeWidth={2} />
-                        <span>Logout</span>
-                    </button>
-                )}
             </nav>
 
             {/* Main Content */}
