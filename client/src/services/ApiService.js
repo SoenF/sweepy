@@ -14,7 +14,7 @@ class ApiService {
         // API URL configuration
         if (this.isMobile) {
             // Production: use Render backend
-            this.baseUrl = 'https://homeflow-f54h.onrender.com/api';
+            this.baseUrl = 'https://sweepy-backend.onrender.com/api';
             // For local development with Android emulator:
             // this.baseUrl = 'http://10.0.2.2:3000/api';
         } else {
