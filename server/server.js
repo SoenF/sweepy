@@ -15,33 +15,26 @@ const PORT = process.env.PORT || 3000;
 // Trust proxy - Required for Render deployment and rate limiting
 app.set('trust proxy', 1);
 
-// CORS Configuration
+// CORS configuration for web and mobile apps
 const corsOptions = {
-    origin: function (origin, callback) {
-        // Allow requests with no origin (mobile apps, Postman, etc.)
-        if (!origin) return callback(null, true);
-
-        const allowedOrigins = [
-            'http://localhost:5173',
-            'http://localhost:3000',
-            'https://homeflow-f54h.onrender.com',
-            process.env.FRONTEND_URL
-        ].filter(Boolean); // Remove undefined values
-
-        if (allowedOrigins.includes(origin)) {
-            callback(null, true);
-        } else {
-            console.log('CORS blocked origin:', origin);
-            callback(null, true); // For now, allow all to debug
-        }
-    },
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization']
+    origin: '*', // Allow ALL origins for mobile compatibility
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Client-Type', 'Accept', 'X-Requested-With'],
+    credentials: false // Disable credentials to allow wildcard origin
 };
 
 app.use(cors(corsOptions));
+
 app.use(express.json());
+
+// Handle preflight requests explicitly
+app.options('*', (req, res) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, X-Client-Type');
+    // res.header('Access-Control-Allow-Credentials', 'true'); // DISABLED
+    res.sendStatus(200);
+});
 
 // Apply rate limiting to specific routes
 app.use('/api/auth/', authRateLimiter); // Apply to auth routes
