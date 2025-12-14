@@ -224,54 +224,55 @@ const Dashboard = () => {
             {isMobile && (
                 <div style={{
                     position: 'fixed',
-                    bottom: '80px', // Positioned higher - above tasks/calendar buttons
+                    bottom: '90px', // Positioned above bottom nav
                     left: 0, right: 0,
-                    backgroundColor: 'white',
-                    borderTop: '1px solid rgba(0,0,0,0.05)',
+                    backgroundColor: 'transparent',
+                    // borderTop: '1px solid rgba(0,0,0,0.05)', // Removed border for cleaner look
                     display: 'flex',
                     justifyContent: 'space-between',
                     alignItems: 'center',
-                    padding: '1rem 1.5rem',
-                    zIndex: 99, // Lower than bottom nav
-                    boxShadow: '0 -4px 12px rgba(0,0,0,0.05)',
-                    marginLeft: '260px', // Account for sidebar space on desktop view
-                    marginRight: '0'
+                    padding: '0 1.5rem 1rem', // Add padding side and bottom
+                    zIndex: 99,
+                    // boxShadow: '0 -4px 12px rgba(0,0,0,0.05)', // Removed shadow
+                    pointerEvents: 'none' // container transparent, buttons clickable
                 }}>
-                    <Button
-                        variant="ghost"
-                        onClick={toggleLanguage}
-                        style={{
-                            backgroundColor: 'white',
-                            border: '1px solid rgba(0,0,0,0.1)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '0.5rem',
-                            flex: 1,
-                            justifyContent: 'center',
-                            marginRight: '0.5rem'
-                        }}
-                    >
-                        <Globe size={18} />
-                        {language === 'en' ? 'FR' : 'EN'}
-                    </Button>
-                    <Button
-                        variant="outline"
-                        onClick={handleLogout}
-                        style={{
-                            backgroundColor: 'white',
-                            color: '#dc2626',
-                            borderColor: '#dc2626',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '0.5rem',
-                            flex: 1,
-                            justifyContent: 'center',
-                            marginLeft: '0.5rem'
-                        }}
-                    >
-                        <LogOut size={18} />
-                        {t('logout')}
-                    </Button>
+                    <div style={{ pointerEvents: 'auto', flex: 1, display: 'flex', gap: '1rem' }}>
+                        <Button
+                            variant="ghost"
+                            onClick={toggleLanguage}
+                            style={{
+                                backgroundColor: 'white',
+                                border: '1px solid rgba(0,0,0,0.1)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.5rem',
+                                flex: 1,
+                                justifyContent: 'center',
+                                marginRight: '0.5rem'
+                            }}
+                        >
+                            <Globe size={18} />
+                            {language === 'en' ? 'FR' : 'EN'}
+                        </Button>
+                        <Button
+                            variant="outline"
+                            onClick={handleLogout}
+                            style={{
+                                backgroundColor: 'white',
+                                color: '#dc2626',
+                                borderColor: '#dc2626',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.5rem',
+                                flex: 1,
+                                justifyContent: 'center',
+                                marginLeft: '0.5rem'
+                            }}
+                        >
+                            <LogOut size={18} />
+                            {t('logout')}
+                        </Button>
+                    </div>
                 </div>
             )}
 

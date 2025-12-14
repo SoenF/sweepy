@@ -23,6 +23,7 @@ class ApiService {
         }
 
         console.log('[ApiService] Initialized with baseUrl:', this.baseUrl);
+        // Alert removed for production
     }
 
     /**
@@ -139,6 +140,7 @@ class ApiService {
             return data;
         } catch (error) {
             console.error(`[ApiService] Error:`, error);
+            // Alert removed for production
             throw error;
         }
     }

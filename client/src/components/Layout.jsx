@@ -105,30 +105,8 @@ const Layout = ({ children }) => {
                 )}
             </aside>
 
-            {/* Top Action Bar - Mobile Only - Only show app title, hide duplicate buttons */}
-            {isMobile && (
-                <div style={{
-                    position: 'fixed',
-                    top: 0, left: 0, right: 0,
-                    backgroundColor: 'white',
-                    borderBottom: '1px solid rgba(0,0,0,0.05)',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    padding: '0.75rem 1rem',
-                    zIndex: 90,
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
-                    marginLeft: '260px', // Account for sidebar space
-                    marginRight: '0'
-                }}>
-                    <h1 style={{ fontSize: '1.4rem', fontWeight: 800, letterSpacing: '-0.03em', margin: 0 }}>Sweepy</h1>
-                    {/* Empty space where buttons were to maintain alignment */}
-                    <div style={{ display: 'flex', gap: '0.75rem' }}>
-                        <div style={{ width: '32px', height: '32px' }}></div> {/* Placeholder for Globe button */}
-                        <div style={{ width: '32px', height: '32px' }}></div> {/* Placeholder for Logout button */}
-                    </div>
-                </div>
-            )}
+            {/* Top Action Bar - Mobile Only - REMOVED LOGO as requested */}
+            {/* {isMobile && ( ... )} */}
 
             {/* Bottom Navigation - Mobile Only */}
             {isMobile && (

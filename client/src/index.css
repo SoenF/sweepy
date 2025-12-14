@@ -14,8 +14,9 @@
 
   /* Backgrounds: Cream / Warm Off-White */
   --bg-body: 35 30% 98%;
-  --bg-surface: 0 0% 100%;
-  --bg-surface-hover: 35 30% 96%;
+  --bg-surface: 35 30% 96%;
+  /* Warm Cream instead of Pure White */
+  --bg-surface-hover: 35 30% 94%;
 
   /* Text: Warm Dark Grey / Brownish */
   --text-main: 25 15% 25%;
