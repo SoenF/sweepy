@@ -223,20 +223,13 @@ const Dashboard = () => {
             {/* Mobile Controls above the main bottom navigation - One on left, one on right as requested */}
             {isMobile && (
                 <div style={{
-                    position: 'fixed',
-                    bottom: '90px', // Positioned above bottom nav
-                    left: 0, right: 0,
-                    backgroundColor: 'transparent',
+                    marginTop: '2rem',
                     // borderTop: '1px solid rgba(0,0,0,0.05)', // Removed border for cleaner look
                     display: 'flex',
                     justifyContent: 'space-between',
                     alignItems: 'center',
-                    padding: '0 1.5rem 1rem', // Add padding side and bottom
-                    zIndex: 99,
-                    // boxShadow: '0 -4px 12px rgba(0,0,0,0.05)', // Removed shadow
-                    pointerEvents: 'none' // container transparent, buttons clickable
                 }}>
-                    <div style={{ pointerEvents: 'auto', flex: 1, display: 'flex', gap: '1rem' }}>
+                    <div style={{ flex: 1, display: 'flex', gap: '1rem' }}>
                         <Button
                             variant="ghost"
                             onClick={toggleLanguage}
@@ -278,7 +271,7 @@ const Dashboard = () => {
 
             {/* Add spacing to prevent content overlap with bottom controls */}
             {isMobile && (
-                <div style={{ height: '180px' }}></div> // Adjusted space to account for both button rows
+                <div style={{ height: '20px' }}></div>
             )}
         </div>
     );
