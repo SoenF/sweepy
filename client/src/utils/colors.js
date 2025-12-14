@@ -9,8 +9,8 @@ export const getMemberColor = (name) => {
     const hue = Math.abs(hash % 360);
 
     // Use higher saturation and varied lightness for better contrast on mobile
-    // Use alternating lightness values to ensure enough difference between colors
-    const lightness = (Math.abs(hash % 3) * 30) + 40; // Alternates between 40%, 70%, and 100%
+    // Prevent 100% lightness (white). Adjusted to 45% - 75% range for visibility.
+    const lightness = (Math.abs(hash % 3) * 15) + 45;
 
     return `hsl(${hue}, 85%, ${lightness}%)`;
 };
