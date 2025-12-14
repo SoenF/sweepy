@@ -41,7 +41,7 @@ export const createMember = async (data) => {
     if (isMobile) {
         try {
             const member = await apiService.createMember(data);
-            await DB.addLocalMember(member);
+            await DB.addLocalMember({ ...member, server_id: member._id });
             return member;
         } catch (error) {
             // Offline: queue for sync
@@ -106,7 +106,7 @@ export const createChore = async (data) => {
     if (isMobile) {
         try {
             const chore = await apiService.createChore(data);
-            await DB.addLocalChore(chore);
+            await DB.addLocalChore({ ...chore, server_id: chore._id });
             return chore;
         } catch (error) {
             console.warn('[createChore] API failed, queuing for sync:', error);

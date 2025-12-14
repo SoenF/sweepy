@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, Users, CheckSquare, Calendar as CalendarIcon, Globe, LogOut } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
+import { syncWithServer } from '../utils/api';
 import { Capacitor } from '@capacitor/core';
 
 const Layout = ({ children }) => {
@@ -11,6 +12,13 @@ const Layout = ({ children }) => {
     const { t, language, toggleLanguage } = useLanguage();
     const { logout, family } = useAuth();
     const isMobile = Capacitor.isNativePlatform();
+
+    // Sync data on mount (mobile only)
+    useEffect(() => {
+        if (isMobile) {
+            syncWithServer();
+        }
+    }, [isMobile]);
 
     const handleLogout = () => {
         logout();

@@ -9,12 +9,14 @@ const createTables = async () => {
     const query = `
     CREATE TABLE IF NOT EXISTS members (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
+        server_id TEXT, -- MongoDB _id
         name TEXT NOT NULL,
         avatar TEXT,
         total_points INTEGER DEFAULT 0
     );
     CREATE TABLE IF NOT EXISTS chores (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
+        server_id TEXT, -- MongoDB _id
         name TEXT NOT NULL,
         difficulty INTEGER DEFAULT 1,
         frequency_value INTEGER DEFAULT 1,
@@ -23,6 +25,7 @@ const createTables = async () => {
     );
     CREATE TABLE IF NOT EXISTS assignments (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
+        server_id TEXT, -- MongoDB _id
         chore_id INTEGER,
         member_id INTEGER,
         date TEXT,
@@ -34,6 +37,20 @@ const createTables = async () => {
     await db.execute(query);
 };
 
+// Helper to add column if missing (simple migration)
+const ensureSchema = async () => {
+    try {
+        // Members
+        await db.run("ALTER TABLE members ADD COLUMN server_id TEXT").catch(() => { });
+        // Chores
+        await db.run("ALTER TABLE chores ADD COLUMN server_id TEXT").catch(() => { });
+        // Assignments
+        await db.run("ALTER TABLE assignments ADD COLUMN server_id TEXT").catch(() => { });
+    } catch (e) {
+        // Ignore if exists
+    }
+};
+
 export const initDB = async () => {
     if (!Capacitor.isNativePlatform()) return; // Skip on web for now, unless we setup jeep-sqlite
 
@@ -42,6 +59,7 @@ export const initDB = async () => {
         db = await sqlite.createConnection('sweepy.db', false, 'no-encryption', 1, false);
         await db.open();
         await createTables();
+        await ensureSchema(); // Ensure migration
         console.log('SQLite Database initialized');
     } catch (err) {
         console.error('Error initializing SQLite:', err);
@@ -63,11 +81,17 @@ export const getLocalMembers = async () => {
 export const addLocalMember = async (member) => {
     if (!db) return null;
     try {
-        const query = 'INSERT INTO members (name, avatar, total_points) VALUES (?, ?, ?)';
-        const res = await db.run(query, [member.name, member.avatar || '', member.total_points || 0]);
+        const query = 'INSERT INTO members (server_id, name, avatar, total_points) VALUES (?, ?, ?, ?)';
+        const res = await db.run(query, [
+            member.server_id || member._id || null,
+            member.name,
+            member.avatar || '',
+            member.total_points || 0
+        ]);
         // Return constructed object with new ID
         return {
             id: res.changes.lastId,
+            server_id: member.server_id || member._id || null,
             name: member.name,
             avatar: member.avatar || '',
             total_points: member.total_points || 0
@@ -93,7 +117,6 @@ export const updateLocalMember = async (id, data) => {
     if (!db) return;
     try {
         // Build dynamic query or specific one. For simplicity assuming name/avatar update
-        // Note: SQLite doesn't return the updated row, so we return the input data + id
         const query = 'UPDATE members SET name = ?, avatar = ? WHERE id = ?';
         await db.run(query, [data.name, data.avatar || '', id]);
         return { id, ...data };
@@ -118,15 +141,16 @@ export const getLocalChores = async () => {
 export const addLocalChore = async (chore) => {
     if (!db) return null;
     try {
-        const query = 'INSERT INTO chores (name, difficulty, frequency_value, frequency_type, auto_assign) VALUES (?, ?, ?, ?, ?)';
+        const query = 'INSERT INTO chores (server_id, name, difficulty, frequency_value, frequency_type, auto_assign) VALUES (?, ?, ?, ?, ?, ?)';
         const res = await db.run(query, [
+            chore.server_id || chore._id || null,
             chore.name,
             chore.difficulty || 1,
             chore.frequency_value || 1,
             chore.frequency_type || 'days',
             chore.auto_assign ? 1 : 0
         ]);
-        return { ...chore, id: res.changes.lastId };
+        return { ...chore, id: res.changes.lastId, server_id: chore.server_id || chore._id || null };
     } catch (err) {
         console.error(err);
         throw err;
@@ -358,84 +382,104 @@ export const clearSyncQueue = async (ids) => {
 export const upsertBatchMembers = async (members) => {
     if (!db || !members || members.length === 0) return;
     try {
-        // First, get current local members to identify which ones are locally created (no server id yet)
-        const currentLocalMembers = await getLocalMembers();
-        const localOnlyMembers = currentLocalMembers.filter(localMember =>
-            !members.some(serverMember => serverMember.id === localMember.id)
-        );
+        // Sync logic:
+        // 1. For each incoming server member, find if we allow it in local DB by `server_id`
+        // 2. If yes, UPDATE.
+        // 3. If no, match by `name`? Check if that local member has `server_id` = null. If so, link them.
+        // 4. If no match, INSERT.
 
-        // Use INSERT OR REPLACE to merge server data
         for (const member of members) {
-            const query = 'INSERT OR REPLACE INTO members (id, name, avatar, total_points) VALUES (?, ?, ?, ?)';
-            await db.run(query, [
-                member.id || member._id,
-                member.name,
-                member.avatar || '',
-                member.total_points || 0
-            ]);
-        }
+            const serverId = member._id || member.id; // API returns _id usually
 
-        // Re-insert local-only members to preserve them
-        for (const localMember of localOnlyMembers) {
-            if (!members.some(serverMember => serverMember.id === localMember.id)) {
-                const query = 'INSERT OR REPLACE INTO members (id, name, avatar, total_points) VALUES (?, ?, ?, ?)';
-                await db.run(query, [
-                    localMember.id,
-                    localMember.name,
-                    localMember.avatar || '',
-                    localMember.total_points
+            // Check existence by server_id
+            const existingByServerId = await db.query('SELECT id FROM members WHERE server_id = ?', [serverId]);
+
+            if (existingByServerId.values.length > 0) {
+                // UPDATE
+                await db.run('UPDATE members SET name = ?, avatar = ?, total_points = ? WHERE server_id = ?', [
+                    member.name,
+                    member.avatar || '',
+                    member.total_points || 0,
+                    serverId
                 ]);
+            } else {
+                // Try to match by NAME (deduplication strategy for legacy local data)
+                const existingByName = await db.query('SELECT id, server_id FROM members WHERE name = ?', [member.name]);
+                if (existingByName.values.length > 0 && !existingByName.values[0].server_id) {
+                    // LINK existing local member to this server ID
+                    await db.run('UPDATE members SET server_id = ?, avatar = ?, total_points = ? WHERE id = ?', [
+                        serverId,
+                        member.avatar || '',
+                        member.total_points || 0,
+                        existingByName.values[0].id
+                    ]);
+                } else {
+                    // INSERT NEW
+                    await db.run('INSERT INTO members (server_id, name, avatar, total_points) VALUES (?, ?, ?, ?)', [
+                        serverId,
+                        member.name,
+                        member.avatar || '',
+                        member.total_points || 0
+                    ]);
+                }
             }
         }
-
-        console.log(`[DB] Upserted ${members.length} members from server, preserved ${localOnlyMembers.length} local-only members`);
+        console.log(`[DB] Synced ${members.length} members from server`);
     } catch (err) {
         console.error('Error upserting batch members:', err);
         throw err;
     }
 };
-
 export const upsertBatchChores = async (chores) => {
     if (!db || !chores || chores.length === 0) return;
     try {
-        // First, get current local chores to identify which ones are locally created (no server id yet)
-        const currentLocalChores = await getLocalChores();
-        const localOnlyChores = currentLocalChores.filter(localChore =>
-            !chores.some(serverChore => serverChore.id === localChore.id)
-        );
-
-        // Use INSERT OR REPLACE to merge server data
         for (const chore of chores) {
-            const query = 'INSERT OR REPLACE INTO chores (id, name, difficulty, frequency_value, frequency_type, auto_assign) VALUES (?, ?, ?, ?, ?, ?)';
-            await db.run(query, [
-                chore.id || chore._id,
-                chore.name,
-                chore.difficulty || 1,
-                chore.frequency_value || 1,
-                chore.frequency_type || 'days',
-                chore.auto_assign ? 1 : 0
-            ]);
-        }
+            const serverId = chore._id || chore.id;
 
-        // Re-insert local-only chores to preserve them
-        for (const localChore of localOnlyChores) {
-            if (!chores.some(serverChore => serverChore.id === localChore.id)) {
-                const query = 'INSERT OR REPLACE INTO chores (id, name, difficulty, frequency_value, frequency_type, auto_assign) VALUES (?, ?, ?, ?, ?, ?)';
+            const existing = await db.query('SELECT id FROM chores WHERE server_id = ?', [serverId]);
+
+            if (existing.values.length > 0) {
+                // UPDATE
+                const query = 'UPDATE chores SET name = ?, difficulty = ?, frequency_value = ?, frequency_type = ?, auto_assign = ? WHERE server_id = ?';
                 await db.run(query, [
-                    localChore.id,
-                    localChore.name,
-                    localChore.difficulty || 1,
-                    localChore.frequency_value || 1,
-                    localChore.frequency_type || 'days',
-                    localChore.auto_assign ? 1 : 0
+                    chore.name,
+                    chore.difficulty || 1,
+                    chore.frequency_value || 1,
+                    chore.frequency_type || 'days',
+                    chore.auto_assign ? 1 : 0,
+                    serverId
                 ]);
+            } else {
+                // Try match by name for legacy
+                const existingByName = await db.query('SELECT id, server_id FROM chores WHERE name = ?', [chore.name]);
+                if (existingByName.values.length > 0 && !existingByName.values[0].server_id) {
+                    // Link
+                    const query = 'UPDATE chores SET server_id = ?, difficulty = ?, frequency_value = ?, frequency_type = ?, auto_assign = ? WHERE id = ?';
+                    await db.run(query, [
+                        serverId,
+                        chore.difficulty || 1,
+                        chore.frequency_value || 1,
+                        chore.frequency_type || 'days',
+                        chore.auto_assign ? 1 : 0,
+                        existingByName.values[0].id
+                    ]);
+                } else {
+                    // INSERT
+                    const query = 'INSERT INTO chores (server_id, name, difficulty, frequency_value, frequency_type, auto_assign) VALUES (?, ?, ?, ?, ?, ?)';
+                    await db.run(query, [
+                        serverId,
+                        chore.name,
+                        chore.difficulty || 1,
+                        chore.frequency_value || 1,
+                        chore.frequency_type || 'days',
+                        chore.auto_assign ? 1 : 0
+                    ]);
+                }
             }
         }
-
-        console.log(`[DB] Upserted ${chores.length} chores from server, preserved ${localOnlyChores.length} local-only chores`);
+        console.log(`[DB] Synced ${chores.length} chores from server`);
     } catch (err) {
         console.error('Error upserting batch chores:', err);
         throw err;
     }
 };
-
