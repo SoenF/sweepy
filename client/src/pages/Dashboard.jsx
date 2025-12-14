@@ -1,19 +1,25 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { getMembers, getAssignments, resetPoints } from '../utils/api';
 import Card from '../components/Card';
 import Avatar from '../components/Avatar';
 import { format } from 'date-fns';
 import { fr, enUS } from 'date-fns/locale';
-import { CheckCircle, Trophy, Calendar, RefreshCcw } from 'lucide-react';
+import { CheckCircle, Trophy, Calendar, RefreshCcw, Globe, LogOut } from 'lucide-react';
 import Button from '../components/Button';
+import { Capacitor } from '@capacitor/core';
 
 import { useLanguage } from '../context/LanguageContext';
+import { useAuth } from '../context/AuthContext';
 
 const Dashboard = () => {
-    const { t, language } = useLanguage();
+    const { t, language, toggleLanguage } = useLanguage();
+    const { logout } = useAuth();
+    const navigate = useNavigate();
     const [members, setMembers] = useState([]);
     const [todaysChores, setTodaysChores] = useState([]);
     const [loading, setLoading] = useState(true);
+    const isMobile = Capacitor.isNativePlatform();
 
     const today = new Date();
 
@@ -54,14 +60,23 @@ const Dashboard = () => {
         }
     };
 
+    const handleLogout = () => {
+        logout();
+        navigate('/login');
+    };
+
     return (
         <div>
-            <div style={{ marginBottom: '2rem' }}>
-                <h2 style={{ fontSize: '1.75rem', marginBottom: '0.25rem' }}>{t('welcome')}</h2>
-                <p style={{ color: 'hsl(var(--text-muted))' }}>
-                    {language === 'fr' ? "C'est " : "It's "}
-                    {format(today, 'EEEE d MMMM yyyy', { locale: dateLocale })}
-                </p>
+            <div style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
+                <div>
+                    <h2 style={{ fontSize: '1.75rem', marginBottom: '0.25rem' }}>{t('welcome')}</h2>
+                    <p style={{ color: 'hsl(var(--text-muted))' }}>
+                        {language === 'fr' ? "C'est " : "It's "}
+                        {format(today, 'EEEE d MMMM yyyy', { locale: dateLocale })}
+                    </p>
+                </div>
+
+                {/* Mobile controls - moved to bottom of dashboard as requested */}
             </div>
 
             <div className="dashboard-grid">
@@ -204,6 +219,66 @@ const Dashboard = () => {
                     )}
                 </div>
             </div>
+
+            {/* Mobile Controls above the main bottom navigation - One on left, one on right as requested */}
+            {isMobile && (
+                <div style={{
+                    position: 'fixed',
+                    bottom: '80px', // Positioned higher - above tasks/calendar buttons
+                    left: 0, right: 0,
+                    backgroundColor: 'white',
+                    borderTop: '1px solid rgba(0,0,0,0.05)',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    padding: '1rem 1.5rem',
+                    zIndex: 99, // Lower than bottom nav
+                    boxShadow: '0 -4px 12px rgba(0,0,0,0.05)',
+                    marginLeft: '260px', // Account for sidebar space on desktop view
+                    marginRight: '0'
+                }}>
+                    <Button
+                        variant="ghost"
+                        onClick={toggleLanguage}
+                        style={{
+                            backgroundColor: 'white',
+                            border: '1px solid rgba(0,0,0,0.1)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem',
+                            flex: 1,
+                            justifyContent: 'center',
+                            marginRight: '0.5rem'
+                        }}
+                    >
+                        <Globe size={18} />
+                        {language === 'en' ? 'FR' : 'EN'}
+                    </Button>
+                    <Button
+                        variant="outline"
+                        onClick={handleLogout}
+                        style={{
+                            backgroundColor: 'white',
+                            color: '#dc2626',
+                            borderColor: '#dc2626',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem',
+                            flex: 1,
+                            justifyContent: 'center',
+                            marginLeft: '0.5rem'
+                        }}
+                    >
+                        <LogOut size={18} />
+                        {t('logout')}
+                    </Button>
+                </div>
+            )}
+
+            {/* Add spacing to prevent content overlap with bottom controls */}
+            {isMobile && (
+                <div style={{ height: '180px' }}></div> // Adjusted space to account for both button rows
+            )}
         </div>
     );
 };

@@ -358,11 +358,15 @@ export const clearSyncQueue = async (ids) => {
 export const upsertBatchMembers = async (members) => {
     if (!db || !members || members.length === 0) return;
     try {
-        // Clear existing and insert fresh (simple approach)
-        await db.run('DELETE FROM members');
+        // First, get current local members to identify which ones are locally created (no server id yet)
+        const currentLocalMembers = await getLocalMembers();
+        const localOnlyMembers = currentLocalMembers.filter(localMember =>
+            !members.some(serverMember => serverMember.id === localMember.id)
+        );
 
+        // Use INSERT OR REPLACE to merge server data
         for (const member of members) {
-            const query = 'INSERT INTO members (id, name, avatar, total_points) VALUES (?, ?, ?, ?)';
+            const query = 'INSERT OR REPLACE INTO members (id, name, avatar, total_points) VALUES (?, ?, ?, ?)';
             await db.run(query, [
                 member.id || member._id,
                 member.name,
@@ -371,7 +375,20 @@ export const upsertBatchMembers = async (members) => {
             ]);
         }
 
-        console.log(`[DB] Upserted ${members.length} members`);
+        // Re-insert local-only members to preserve them
+        for (const localMember of localOnlyMembers) {
+            if (!members.some(serverMember => serverMember.id === localMember.id)) {
+                const query = 'INSERT OR REPLACE INTO members (id, name, avatar, total_points) VALUES (?, ?, ?, ?)';
+                await db.run(query, [
+                    localMember.id,
+                    localMember.name,
+                    localMember.avatar || '',
+                    localMember.total_points
+                ]);
+            }
+        }
+
+        console.log(`[DB] Upserted ${members.length} members from server, preserved ${localOnlyMembers.length} local-only members`);
     } catch (err) {
         console.error('Error upserting batch members:', err);
         throw err;
@@ -381,11 +398,15 @@ export const upsertBatchMembers = async (members) => {
 export const upsertBatchChores = async (chores) => {
     if (!db || !chores || chores.length === 0) return;
     try {
-        // Clear existing and insert fresh
-        await db.run('DELETE FROM chores');
+        // First, get current local chores to identify which ones are locally created (no server id yet)
+        const currentLocalChores = await getLocalChores();
+        const localOnlyChores = currentLocalChores.filter(localChore =>
+            !chores.some(serverChore => serverChore.id === localChore.id)
+        );
 
+        // Use INSERT OR REPLACE to merge server data
         for (const chore of chores) {
-            const query = 'INSERT INTO chores (id, name, difficulty, frequency_value, frequency_type, auto_assign) VALUES (?, ?, ?, ?, ?, ?)';
+            const query = 'INSERT OR REPLACE INTO chores (id, name, difficulty, frequency_value, frequency_type, auto_assign) VALUES (?, ?, ?, ?, ?, ?)';
             await db.run(query, [
                 chore.id || chore._id,
                 chore.name,
@@ -396,7 +417,22 @@ export const upsertBatchChores = async (chores) => {
             ]);
         }
 
-        console.log(`[DB] Upserted ${chores.length} chores`);
+        // Re-insert local-only chores to preserve them
+        for (const localChore of localOnlyChores) {
+            if (!chores.some(serverChore => serverChore.id === localChore.id)) {
+                const query = 'INSERT OR REPLACE INTO chores (id, name, difficulty, frequency_value, frequency_type, auto_assign) VALUES (?, ?, ?, ?, ?, ?)';
+                await db.run(query, [
+                    localChore.id,
+                    localChore.name,
+                    localChore.difficulty || 1,
+                    localChore.frequency_value || 1,
+                    localChore.frequency_type || 'days',
+                    localChore.auto_assign ? 1 : 0
+                ]);
+            }
+        }
+
+        console.log(`[DB] Upserted ${chores.length} chores from server, preserved ${localOnlyChores.length} local-only chores`);
     } catch (err) {
         console.error('Error upserting batch chores:', err);
         throw err;

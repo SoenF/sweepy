@@ -81,26 +81,6 @@ const Layout = ({ children }) => {
                     })}
                 </nav>
 
-                <button
-                    onClick={toggleLanguage}
-                    style={{
-                        padding: '0.75rem 1rem',
-                        borderRadius: 'var(--radius-sm)',
-                        border: '1px solid rgba(0,0,0,0.05)',
-                        backgroundColor: 'white',
-                        color: 'hsl(var(--text-main))',
-                        cursor: 'pointer',
-                        fontWeight: 600,
-                        display: 'flex', alignItems: 'center', gap: '0.75rem',
-                        marginTop: 'auto',
-                        boxShadow: 'var(--shadow-sm)',
-                        transition: 'all 0.2s'
-                    }}
-                >
-                    <Globe size={18} />
-                    {language === 'en' ? 'Français' : 'English'}
-                </button>
-
                 {/* Logout button - Web only */}
                 {!isMobile && family && (
                     <button
@@ -114,9 +94,9 @@ const Layout = ({ children }) => {
                             cursor: 'pointer',
                             fontWeight: 600,
                             display: 'flex', alignItems: 'center', gap: '0.75rem',
-                            marginTop: '0.5rem',
                             boxShadow: 'var(--shadow-sm)',
-                            transition: 'all 0.2s'
+                            transition: 'all 0.2s',
+                            marginTop: 'auto'
                         }}
                     >
                         <LogOut size={18} />
@@ -125,44 +105,73 @@ const Layout = ({ children }) => {
                 )}
             </aside>
 
+            {/* Top Action Bar - Mobile Only - Only show app title, hide duplicate buttons */}
+            {isMobile && (
+                <div style={{
+                    position: 'fixed',
+                    top: 0, left: 0, right: 0,
+                    backgroundColor: 'white',
+                    borderBottom: '1px solid rgba(0,0,0,0.05)',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    padding: '0.75rem 1rem',
+                    zIndex: 90,
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
+                    marginLeft: '260px', // Account for sidebar space
+                    marginRight: '0'
+                }}>
+                    <h1 style={{ fontSize: '1.4rem', fontWeight: 800, letterSpacing: '-0.03em', margin: 0 }}>Sweepy</h1>
+                    {/* Empty space where buttons were to maintain alignment */}
+                    <div style={{ display: 'flex', gap: '0.75rem' }}>
+                        <div style={{ width: '32px', height: '32px' }}></div> {/* Placeholder for Globe button */}
+                        <div style={{ width: '32px', height: '32px' }}></div> {/* Placeholder for Logout button */}
+                    </div>
+                </div>
+            )}
+
             {/* Bottom Navigation - Mobile Only */}
-            <nav className="mobile-bottom-nav" style={{
-                position: 'fixed',
-                bottom: 0, left: 0, right: 0,
-                backgroundColor: 'white',
-                borderTop: '1px solid rgba(0,0,0,0.05)',
-                display: 'flex', justifyContent: 'space-around', alignItems: 'center',
-                padding: '0.75rem 0.5rem',
-                zIndex: 100,
-                boxShadow: '0 -4px 12px rgba(0,0,0,0.05)'
-            }}>
-                {navItems.map((item) => {
-                    const isActive = location.pathname === item.path;
-                    const Icon = item.icon;
-                    return (
-                        <Link
-                            key={item.path}
-                            to={item.path}
-                            style={{
-                                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.25rem',
-                                color: isActive ? 'hsl(var(--primary))' : 'hsl(var(--text-muted))',
-                                flex: 1,
-                                fontSize: '0.75rem',
-                                fontWeight: isActive ? 600 : 500
-                            }}
-                        >
-                            <Icon size={24} strokeWidth={isActive ? 2.5 : 2} />
-                            <span>{item.label}</span>
-                        </Link>
-                    )
-                })}
-            </nav>
+            {isMobile && (
+                <nav className="mobile-bottom-nav" style={{
+                    position: 'fixed',
+                    bottom: 'env(safe-area-inset-bottom, 20px)', // Account for system navigation buttons
+                    left: 0, right: 0,
+                    backgroundColor: 'white',
+                    borderTop: '1px solid rgba(0,0,0,0.05)',
+                    display: 'flex', justifyContent: 'space-around', alignItems: 'center',
+                    padding: '1rem 0.5rem 2rem', // Increased bottom padding to account for navigation buttons
+                    zIndex: 100,
+                    boxShadow: '0 -4px 12px rgba(0,0,0,0.05)'
+                }}>
+                    {navItems.map((item) => {
+                        const isActive = location.pathname === item.path;
+                        const Icon = item.icon;
+                        return (
+                            <Link
+                                key={item.path}
+                                to={item.path}
+                                style={{
+                                    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.25rem',
+                                    color: isActive ? 'hsl(var(--primary))' : 'hsl(var(--text-muted))',
+                                    flex: 1,
+                                    fontSize: '0.75rem',
+                                    fontWeight: isActive ? 600 : 500
+                                }}
+                            >
+                                <Icon size={24} strokeWidth={isActive ? 2.5 : 2} />
+                                <span>{item.label}</span>
+                            </Link>
+                        )
+                    })}
+                </nav>
+            )}
 
             {/* Main Content */}
             <main className="main-content" style={{
                 flex: 1,
                 padding: '2rem',
-                maxWidth: '100%'
+                maxWidth: '100%',
+                ...(isMobile ? { marginTop: '3.5rem', marginBottom: '8rem' } : {}) // Increased bottom margin for mobile to account for navigation
             }}>
                 <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
                     {children}

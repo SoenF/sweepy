@@ -129,9 +129,9 @@ h5 {
     margin-left: 0 !important;
     padding: 1.5rem !important;
 
-    /* Safe Areas */
+    /* Safe Areas - Account for bottom nav bar - Reduced from 80px to 30px to prevent overlapping with system buttons */
     padding-top: calc(1.5rem + env(safe-area-inset-top)) !important;
-    padding-bottom: calc(100px + env(safe-area-inset-bottom)) !important;
+    padding-bottom: calc(120px + env(safe-area-inset-bottom)) !important;
     padding-left: calc(1.5rem + env(safe-area-inset-left)) !important;
     padding-right: calc(1.5rem + env(safe-area-inset-right)) !important;
   }
