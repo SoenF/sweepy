@@ -1,0 +1,9 @@
+{
+  "appId": "com.example.app",
+  "appName": "Sweepy",
+  "webDir": "dist",
+  "server": {
+    "cleartext": true,
+    "androidScheme": "https"
+  }
+}
