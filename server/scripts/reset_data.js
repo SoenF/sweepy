@@ -1,28 +1,36 @@
-const { Sequelize } = require('sequelize');
+const mongoose = require('mongoose');
 const path = require('path');
-const { Member, Assignment, Chore } = require('../models');
+require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
 
-// Initialize standalone connection if needed, or use existing config
-// We can just require the models index which sets up the connection
-// But we need to make sure the app isn't locking the DB if sqlite (WAL mode handles it usually)
+const { Member, Assignment, Chore } = require('../models');
 
 async function resetData() {
     try {
-        console.log('Clearing Assignments...');
-        await Assignment.destroy({ where: {}, truncate: true });
+        // Connect to MongoDB
+        const uri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/sweepy';
+        console.log('Connecting to MongoDB...');
+        await mongoose.connect(uri);
+        console.log('✅ Connected to MongoDB\n');
 
-        console.log('Resetting Member Points...');
-        await Member.update({ total_points: 0 }, { where: {} });
+        console.log('🗑️  Clearing Assignments...');
+        const deletedAssignments = await Assignment.deleteMany({});
+        console.log(`   Deleted ${deletedAssignments.deletedCount} assignments`);
 
-        // User said "pareil pour les membres", could mean delete.
-        // But removing members breaks the setup. I'll stick to points.
-        // If "pareil pour les membres" meant "delete members", I'd do:
-        // await Member.destroy({ where: {}, truncate: true });
-        // But let's assume points/history.
+        console.log('🔄 Resetting Member Points...');
+        const updatedMembers = await Member.updateMany({}, { total_points: 0 });
+        console.log(`   Reset points for ${updatedMembers.modifiedCount} members`);
 
-        console.log('Database reset complete.');
+        // Note: Not deleting members or chores, only resetting assignments and points
+        // If you want to delete members too, uncomment:
+        // await Member.deleteMany({});
+        // await Chore.deleteMany({});
+
+        console.log('\n✅ Database reset complete.');
     } catch (err) {
-        console.error('Error resetting data:', err);
+        console.error('❌ Error resetting data:', err);
+    } finally {
+        await mongoose.disconnect();
+        console.log('✅ Disconnected from MongoDB');
     }
 }
 

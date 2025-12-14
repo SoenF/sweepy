@@ -10,19 +10,33 @@ exports.selectMemberForChore = async (chore, dateStr, family_id) => {
     // 1. Get members for rotation
     // If chore has assigned_members, use only those; otherwise use all family members
     let members;
+
+    console.log(`[AssignmentService] 🔍 Selecting member for chore "${chore.name}"`);
+    console.log(`[AssignmentService]    - Date: ${dateStr}`);
+    console.log(`[AssignmentService]    - Family ID: ${family_id}`);
+    console.log(`[AssignmentService]    - Assigned Members (IDs): ${JSON.stringify(chore.assigned_members)}`);
+
     if (chore.assigned_members && chore.assigned_members.length > 0) {
         // Use only assigned members for this chore
-        members = await Member.find({
+        const query = {
             _id: { $in: chore.assigned_members },
             family_id
-        }).sort({ _id: 1 });
+        };
+        console.log(`[AssignmentService]    - Query: ${JSON.stringify(query)}`);
+
+        members = await Member.find(query).sort({ _id: 1 });
     } else {
         // Use all family members (default behavior)
+        console.log(`[AssignmentService]    - Using all family members`);
         members = await Member.find({ family_id }).sort({ _id: 1 });
     }
 
-    if (members) {
-        console.log(`[AssignmentService] Members considered for chore ${chore.name}: [${members.map(m => m.name).join(', ')}]`);
+    if (members && members.length > 0) {
+        console.log(`[AssignmentService] ✅ Members found in MongoDB: [${members.map(m => m.name).join(', ')}]`);
+        console.log(`[AssignmentService]    - Member IDs: [${members.map(m => m._id).join(', ')}]`);
+        console.log(`[AssignmentService]    - Database: ${members[0].constructor.db?.databaseName || 'Unknown'}`);
+    } else {
+        console.log(`[AssignmentService] ⚠️  No members found!`);
     }
 
     if (!members || members.length === 0) return null;
