@@ -24,17 +24,9 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
+app.options('*', cors(corsOptions)); // Enable preflight for all routes properly
 
 app.use(express.json());
-
-// Handle preflight requests explicitly
-app.options('*', (req, res) => {
-    res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, X-Client-Type');
-    // res.header('Access-Control-Allow-Credentials', 'true'); // DISABLED
-    res.sendStatus(200);
-});
 
 // Apply rate limiting to specific routes
 app.use('/api/auth/', authRateLimiter); // Apply to auth routes
