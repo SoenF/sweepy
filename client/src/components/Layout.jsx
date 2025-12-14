@@ -132,8 +132,9 @@ const Layout = ({ children }) => {
                                     display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.25rem',
                                     color: isActive ? 'hsl(var(--primary))' : 'hsl(var(--text-muted))',
                                     flex: 1,
-                                    fontSize: '0.75rem',
-                                    fontWeight: isActive ? 600 : 500
+                                    fontSize: '0.7rem', // Reduced slightly from 0.75rem
+                                    fontWeight: isActive ? 600 : 500,
+                                    whiteSpace: 'nowrap' // Force single line
                                 }}
                             >
                                 <Icon size={24} strokeWidth={isActive ? 2.5 : 2} />

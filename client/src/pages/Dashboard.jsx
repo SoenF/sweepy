@@ -66,7 +66,7 @@ const Dashboard = () => {
     };
 
     return (
-        <div>
+        <div style={{ display: 'flex', flexDirection: 'column', minHeight: 'calc(100vh - 120px)' }}>
             <div style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
                 <div>
                     <h2 style={{ fontSize: '1.75rem', marginBottom: '0.25rem' }}>{t('welcome')}</h2>
@@ -223,7 +223,8 @@ const Dashboard = () => {
             {/* Mobile Controls above the main bottom navigation - One on left, one on right as requested */}
             {isMobile && (
                 <div style={{
-                    marginTop: '2rem',
+                    marginTop: 'auto', // Pushes to bottom of flex container
+                    paddingTop: '2rem',
                     // borderTop: '1px solid rgba(0,0,0,0.05)', // Removed border for cleaner look
                     display: 'flex',
                     justifyContent: 'space-between',
