@@ -289,3 +289,117 @@ function calculateNextDate(currentDate, value, type) {
     if (type === 'months') return addMonths(currentDate, value);
     return addDays(currentDate, value);
 }
+
+// ===== SYNC QUEUE Functions =====
+
+// Create sync_queue table if needed
+const createSyncQueueTable = async () => {
+    if (!db) return;
+    try {
+        const query = `
+        CREATE TABLE IF NOT EXISTS sync_queue (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            type TEXT NOT NULL,
+            data TEXT NOT NULL,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP
+        );
+        `;
+        await db.execute(query);
+    } catch (err) {
+        console.error('Error creating sync_queue table:', err);
+    }
+};
+
+// Initialize sync queue table when DB is initialized
+if (Capacitor.isNativePlatform()) {
+    initDB().then(() => createSyncQueueTable());
+}
+
+export const addToSyncQueue = async (change) => {
+    if (!db) return;
+    try {
+        const query = 'INSERT INTO sync_queue (type, data) VALUES (?, ?)';
+        await db.run(query, [change.type, JSON.stringify(change.data)]);
+    } catch (err) {
+        console.error('Error adding to sync queue:', err);
+        throw err;
+    }
+};
+
+export const getSyncQueue = async () => {
+    if (!db) return [];
+    try {
+        const res = await db.query('SELECT * FROM sync_queue ORDER BY id ASC');
+        return (res.values || []).map(row => ({
+            id: row.id,
+            type: row.type,
+            data: JSON.parse(row.data)
+        }));
+    } catch (err) {
+        console.error('Error getting sync queue:', err);
+        return [];
+    }
+};
+
+export const clearSyncQueue = async (ids) => {
+    if (!db || !ids || ids.length === 0) return;
+    try {
+        const placeholders = ids.map(() => '?').join(',');
+        const query = `DELETE FROM sync_queue WHERE id IN (${placeholders})`;
+        await db.run(query, ids);
+    } catch (err) {
+        console.error('Error clearing sync queue:', err);
+        throw err;
+    }
+};
+
+// ===== BATCH UPSERT Functions =====
+
+export const upsertBatchMembers = async (members) => {
+    if (!db || !members || members.length === 0) return;
+    try {
+        // Clear existing and insert fresh (simple approach)
+        await db.run('DELETE FROM members');
+
+        for (const member of members) {
+            const query = 'INSERT INTO members (id, name, avatar, total_points) VALUES (?, ?, ?, ?)';
+            await db.run(query, [
+                member.id || member._id,
+                member.name,
+                member.avatar || '',
+                member.total_points || 0
+            ]);
+        }
+
+        console.log(`[DB] Upserted ${members.length} members`);
+    } catch (err) {
+        console.error('Error upserting batch members:', err);
+        throw err;
+    }
+};
+
+export const upsertBatchChores = async (chores) => {
+    if (!db || !chores || chores.length === 0) return;
+    try {
+        // Clear existing and insert fresh
+        await db.run('DELETE FROM chores');
+
+        for (const chore of chores) {
+            const query = 'INSERT INTO chores (id, name, difficulty, frequency_value, frequency_type, auto_assign) VALUES (?, ?, ?, ?, ?, ?)';
+            await db.run(query, [
+                chore.id || chore._id,
+                chore.name,
+                chore.difficulty || 1,
+                chore.frequency_value || 1,
+                chore.frequency_type || 'days',
+                chore.auto_assign ? 1 : 0
+            ]);
+        }
+
+        console.log(`[DB] Upserted ${chores.length} chores`);
+    } catch (err) {
+        console.error('Error upserting batch chores:', err);
+        throw err;
+    }
+};
+

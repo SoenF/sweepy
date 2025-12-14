@@ -13,18 +13,13 @@ const Login = React.lazy(() => import('./pages/Login'));
 
 // Protected Route wrapper
 const ProtectedRoute = ({ children }) => {
-  const { isAuthenticated, loading, isMobile } = useAuth();
+  const { isAuthenticated, loading } = useAuth();
 
   if (loading) {
     return <div style={{ padding: '2rem', textAlign: 'center' }}>Loading...</div>;
   }
 
-  // Mobile app doesn't need authentication
-  if (isMobile) {
-    return children;
-  }
-
-  // Web app requires authentication
+  // Both web and mobile require authentication
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
