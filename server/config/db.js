@@ -7,7 +7,8 @@ const connectDB = async () => {
         console.log('🔍 MONGODB_URI is defined:', !!process.env.MONGODB_URI);
         console.log('🔍 Connection URI format:', uri.replace(/\/\/[^:]+:[^@]+@/, '//***:***@')); // Hide credentials
 
-        const conn = await mongoose.connect(uri);
+        // Force the database name to be 'sweepy' to avoid writing to 'test' by default
+        const conn = await mongoose.connect(uri, { dbName: 'sweepy' });
         console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
         console.log(`📊 Database Name: ${conn.connection.db.databaseName}`);
         console.log(`🔌 Connection State: ${conn.connection.readyState === 1 ? 'Connected' : 'Not Connected'}`);

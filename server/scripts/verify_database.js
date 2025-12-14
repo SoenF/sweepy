@@ -13,7 +13,7 @@ async function verifyDatabase() {
         console.log('📡 Connecting to MongoDB...');
         console.log('🔗 URI Format:', uri.replace(/\/\/[^:]+:[^@]+@/, '//***:***@')); // Hide credentials
 
-        await mongoose.connect(uri);
+        await mongoose.connect(uri, { dbName: 'sweepy' });
 
         console.log('\n✅ MongoDB Connected Successfully!');
         console.log('🖥️  Host:', mongoose.connection.host);

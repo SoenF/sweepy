@@ -9,7 +9,8 @@ async function run() {
         // Connect to MongoDB
         const uri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/sweepy';
         console.log('Connecting to MongoDB...');
-        await mongoose.connect(uri);
+        // Force database name to 'sweepy'
+        await mongoose.connect(uri, { dbName: 'sweepy' });
         console.log('✅ Connected to MongoDB\n');
 
         // Fetch assignments using Mongoose syntax
